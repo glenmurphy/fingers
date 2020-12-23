@@ -6,7 +6,7 @@
 // clicks so they better register in DCS.
 
 // import AutoPilot from 'https://raw.githubusercontent.com/divy-work/autopilot-deno/master/mod.ts';
-import AutoPilot from '../../autopilot/autopilot-deno/mod.ts';
+import AutoPilot from '../../autopilot/autopilot-deno/mod.ts'; // dev build
 import { Buttons } from "./buttons.mjs"
 
 class Fingers {
