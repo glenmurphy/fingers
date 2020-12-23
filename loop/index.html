@@ -1,0 +1,131 @@
+<body></body>
+<script type="text/javascript">
+var myCharacteristic;
+var socket;
+
+function setStatus(text) {
+  document.getElementById('status').innerHTML = text;
+}
+
+function connect() {
+  setStatus("connecting");
+  socket = new WebSocket('ws://localhost:18000');
+  socket.addEventListener('open', function (event) {
+    setStatus("connected");
+  });
+  socket.addEventListener('close', function (event) {
+    connect();
+  });
+}
+
+function start() {
+  // id:              fb:fe:ab:25:e4:3b
+  // service:         39de08dc-624e-4d6f-8e42-e1adb7d92fe1
+  // characteristic:  53b2ad55-c810-4c75-8a25-e1883a081ef6
+
+  let serviceUuid = "39de08dc-624e-4d6f-8e42-e1adb7d92fe1";
+  let characteristicUuid = "53b2ad55-c810-4c75-8a25-e1883a081ef6"
+
+  setStatus('Requesting Bluetooth Device...');
+  navigator.bluetooth.requestDevice({filters: [{services: [serviceUuid]}]})
+  .then(device => {
+    setStatus('Connecting to GATT Server...');
+    return device.gatt.connect();
+  })
+  .then(server => {
+    setStatus('Getting Service...');
+    return server.getPrimaryService(serviceUuid);
+  })
+  .then(service => {
+    setStatus('Getting Characteristic...');
+    return service.getCharacteristic(characteristicUuid);
+  })
+  .then(characteristic => {
+    myCharacteristic = characteristic;
+    return myCharacteristic.startNotifications().then(_ => {
+      setStatus('> Notifications started');
+      myCharacteristic.addEventListener('characteristicvaluechanged',
+          handleNotifications);
+    });
+  })
+  .catch(error => {
+    setStatus('Argh! ' + error);
+  });
+}
+
+function onStopButtonClick() {
+  if (myCharacteristic) {
+    myCharacteristic.stopNotifications()
+    .then(_ => {
+      setStatus('> Notifications stopped');
+      myCharacteristic.removeEventListener('characteristicvaluechanged',
+          handleNotifications);
+    })
+    .catch(error => {
+      setStatus('Argh! ' + error);
+    });
+  }
+}
+
+var buttons = [
+  { 
+    name : "center",
+    mask : 1,
+    down : false
+  },
+  { 
+    name : "up",
+    mask : 2,
+    down : false
+  },
+  { 
+    name : "down",
+    mask : 4,
+    down : false
+  },
+  { 
+    name : "fwd",
+    mask : 8,
+    down : false
+  },
+  { 
+    name : "back",
+    mask : 16,
+    down : false
+  },
+]
+
+function handleNotifications(event) {
+  let value = event.target.value;
+  let a = [];
+  // Convert raw data bytes to hex values just for the sake of showing something.
+  // In the "real" world, you'd use data.getUint8, data.getUint16 or even
+  // TextDecoder to process raw data bytes.
+  var val = value.getUint8(4);
+  for (var i = 0; i < buttons.length; i++) {
+    var button = buttons[i];
+    var down = (val & button.mask);
+    if (down && !button.down) {
+      socket.send(button.name);
+      setStatus("Button: " + button.name);
+    }
+    button.down = down;
+  }
+
+  /*
+  for (let i = 0; i < value.byteLength; i++) {
+    a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+  }
+  log('> ' + a.join(' '));
+  */
+}
+</script>
+<style type="text/css">
+
+</style>
+<body>
+<div>
+  <a href="#" onclick="connect(); start(); return false;">start</a>
+</div>
+<div id="status"></div>
+</body>
