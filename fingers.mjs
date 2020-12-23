@@ -2,7 +2,8 @@
 // https://github.com/littledivy/autopilot-deno/pull/37
 // 
 // But until that is merged, I'm using a local development build - un/comment the following
-// lines as appropriate for your setup:
+// lines as appropriate for your setup. My build also has a longer hold time for mouse
+// clicks so they better register in DCS.
 
 // import AutoPilot from 'https://raw.githubusercontent.com/divy-work/autopilot-deno/master/mod.ts';
 import AutoPilot from '../../autopilot/autopilot-deno/mod.ts';
@@ -16,7 +17,7 @@ class Fingers {
     this.enabled = true;
     this.lastClickTime = 0;
     this.start();
-    
+
     console.log("Remember to open the Bluetooth UI at ./loop/index.html");
   }
 
