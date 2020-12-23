@@ -22,7 +22,7 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 
 * It uses the Leap Motion WebSocket API to get the position of your hand
 * It translates that into mouse cursor position, which DCS translates into the ingame cursor
-* It uses Chrome WebBluetooth to get the state of the North Loop, and senses that state to the main script, which then activates different mouse buttons - we use the Loop because we need super reliable button presses of many types, and hand-tracking/pinching etc still can't do it at the reliability/speed we need.
+* It uses Chrome WebBluetooth to get the state of the North Loop, and sends that state (via WebSocket) to the main script, which then activates different mouse buttons - we use the Loop because we need super reliable button presses of many types, and hand-tracking/pinching etc still can't do it at the reliability/speed we need.
 
 ### Other
 

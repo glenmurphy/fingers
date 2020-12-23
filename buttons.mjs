@@ -24,7 +24,7 @@ export class Buttons {
   }
 
   async handleWs(sock) {
-    console.log("socket connected!");
+    console.log("Chrome connected");
     try {
       for await (const ev of sock) {
         if (typeof ev === "string") {
