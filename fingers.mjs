@@ -1,10 +1,13 @@
-//import AutoPilot from 'https://raw.githubusercontent.com/divy-work/autopilot-deno/master/mod.ts';
+// The public version of AutoPilot only supports scrolling up; have submitted a PR here:
+// https://github.com/littledivy/autopilot-deno/pull/37
+// 
+// But until that is merged, I'm using a local development build - un/comment the following
+// lines as appropriate for your setup:
+
+// import AutoPilot from 'https://raw.githubusercontent.com/divy-work/autopilot-deno/master/mod.ts';
 import AutoPilot from '../../autopilot/autopilot-deno/mod.ts';
 import { Buttons } from "./buttons.mjs"
 
-// id:              fb:fe:ab:25:e4:3b
-// service:         39de08dc-624e-4d6f-8e42-e1adb7d92fe1
-// characteristic:  53b2ad55-c810-4c75-8a25-e1883a081ef6
 class Fingers {
   constructor() {
     this.useRightHand = false;
@@ -13,6 +16,7 @@ class Fingers {
     this.enabled = true;
     this.lastClickTime = 0;
     this.start();
+    
     console.log("Remember to open the Bluetooth UI at ./loop/index.html");
   }
 
@@ -48,6 +52,7 @@ class Fingers {
   connect() {
     this.disconnect();
 
+    // Leap WebSocket API
     this.ws = new WebSocket("ws://localhost:6437/v7.json");
     this.ws.onopen = this.handleOpen.bind(this);
     this.ws.onmessage = this.handleMessage.bind(this);
