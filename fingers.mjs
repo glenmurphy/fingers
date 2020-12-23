@@ -107,10 +107,8 @@ class Fingers {
   }
 
   moveMouse(x, y) {
-    if (x < 0) x = 0;
-    else if (x >= this.screenSize.width) x = this.screenSize.width - 1;
-    if (y < 0) y = 0;
-    else if (y >= this.screenSize.height) y = this.screenSize.height - 1;
+    x = Math.max(0, Math.min(x, this.screenSize.width - 1));
+    y = Math.max(0, Math.min(y, this.screenSize.height - 1));
 
     if (this.enabled && this.lastClickTime < new Date().getTime() - 100) {
       this.pilot.moveMouse(x, y);
