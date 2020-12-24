@@ -18,6 +18,10 @@ class Fingers {
     this.lastClickTime = 0;
     this.start();
 
+    // Adjusts smoothing; 1 is no smoothing, 0 is so smooth it doesn't move. Experimental to see
+    // if it's necessary (the Leap doesn't jitter much, and it might slow head rotation)
+    this.trackingSpeed = 0.5; 
+
     console.log("Remember to open the Bluetooth UI at ./loop/index.html");
   }
 
@@ -34,8 +38,15 @@ class Fingers {
       y : this.screenCenter.y * 1.25,
     }
 
+    // Position of the mount relative to eyes
+    this.mountPositionOffset = {
+      x : 0,
+      y : 140, // depth
+      z : 50  // height
+    }
+
     // offset (mostly used to offset Leap mounting angles)
-    this.inputAngleOffset = {
+    this.mountAngleOffset = {
       x : 0,  // HMD is mounted pointed to the left
       y : 5   // HMD is slightly down
     }
@@ -87,11 +98,10 @@ class Fingers {
   handleButton(type) {
     console.log(type);
     
-    if (type == "up")
+    if (type == "up" || !this.enabled) {
       this.toggleEnabled();
-    
-    if (!this.enabled)
       return;
+    }
     
     if (type == "center")
       this.pilot.click("left")
@@ -150,12 +160,22 @@ class Fingers {
   }
 
   handlePointer(pos) {
-    var x = -pos[0]; // horizontal position
-    var z = pos[1];  // depth
-    var y = pos[2];  // vertical position
+    var x = -pos[0] + this.mountPositionOffset.x; // horizontal position
+    var y = pos[1] + this.mountPositionOffset.y;  // depth
+    var z = pos[2] + this.mountPositionOffset.z;  // vertical position
 
-    var h = Math.atan(x / z) * 180 / Math.PI + this.inputAngleOffset.x;
-    var v = Math.atan(y / z) * 180 / Math.PI + this.inputAngleOffset.y;
+    var h = Math.atan(x / y) * 180 / Math.PI + this.mountAngleOffset.x;
+    var v = Math.atan(z / y) * 180 / Math.PI + this.mountAngleOffset.y;
+
+    // Input smoothing
+    if (!this.lastH) this.lastH = h;
+    if (!this.lastV) this.lastV = v;
+
+    h = this.lastH * (1 - this.trackingSpeed) + h * this.trackingSpeed;
+    v = this.lastV * (1 - this.trackingSpeed) + v * this.trackingSpeed;
+
+    this.lastH = h;
+    this.lastV = v;
 
     if (!this.enabled)
       return;
