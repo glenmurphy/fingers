@@ -34,20 +34,28 @@ class Fingers {
       y : this.screenCenter.y * 1.25,
     }
 
-    // Position of the mount relative to eyes
-    this.mountPositionOffset = {
-      x : 0,
-      y : 140, // depth
-      z : 50  // height
+    // Angle of the mount in degrees - x/y/z are the positional axis the angle impacts; these 
+    // have the effect of pushing the cursor in the direction of the offset, so you can use this
+    // if you want your cursor pushed more in a specific direction
+    this.mountAngleOffset = {
+      x : 0,   // horizontal (how many degrees RIGHT the leap is pointing)
+      y : 0,   // clockwise rotation (not used)
+      z : 5   // vertical (how many degrees DOWN the leap is pointing)
     }
 
-    // offset (mostly used to offset Leap mounting angles)
-    this.mountAngleOffset = {
-      x : 0,  // HMD is mounted pointed to the left
-      y : 5   // HMD is slightly down
+    // Position of the eye relative to the leap (in mm, using the Leap coordinate system), in the
+    // leap's rotation system (so 'down' is parallel to the screen)
+    this.eyePositionOffset = {
+      x : 0, // horizontal distance from leap to eye; negative means the leap is right of the eye
+      y : -110, // depth distance from leap to eye; negative means the leap is in front of the eye
+      z : -73   // vertical distance from leap to eye; negative means the leap is above the eye
     }
 
     // scaling angle to screen pixels / HMD fov
+    // This can change as you change the position offset and ideally we would have a calibration
+    // phase. You can test this by putting your hand in a fixed location and rotating your head:
+    // - if the cursor stays in the same place in the cockpit you have this correct
+    // - if the cursor seems to be pulled with the head, the values are too low (and vice-versa)
     this.inputAngleScale = {
       x : 16,
       y : 24
@@ -156,12 +164,14 @@ class Fingers {
   }
 
   handlePointer(pos) {
-    var x = -pos[0] + this.mountPositionOffset.x; // horizontal position
-    var y = pos[1] + this.mountPositionOffset.y;  // depth
-    var z = pos[2] + this.mountPositionOffset.z;  // vertical position
+    var x = -pos[0] - this.eyePositionOffset.x; // horizontal position
+    var y = pos[1] - this.eyePositionOffset.y;  // depth
+    var z = pos[2] + this.eyePositionOffset.z;  // vertical position
+
+    //console.log(`${parseInt(x)}, ${parseInt(y)}, ${parseInt(z)}`)
 
     var h = Math.atan(x / y) * 180 / Math.PI + this.mountAngleOffset.x;
-    var v = Math.atan(z / y) * 180 / Math.PI + this.mountAngleOffset.y;
+    var v = Math.atan(z / y) * 180 / Math.PI + this.mountAngleOffset.z;
 
     if (!this.enabled)
       return;
