@@ -18,10 +18,6 @@ class Fingers {
     this.lastClickTime = 0;
     this.start();
 
-    // Adjusts smoothing; 1 is no smoothing, 0 is so smooth it doesn't move. Experimental to see
-    // if it's necessary (the Leap doesn't jitter much, and it might slow head rotation)
-    this.trackingSpeed = 0.5; 
-
     console.log("Remember to open the Bluetooth UI at ./loop/index.html");
   }
 
@@ -53,8 +49,8 @@ class Fingers {
 
     // scaling angle to screen pixels / HMD fov
     this.inputAngleScale = {
-      x : 12,
-      y : 18
+      x : 16,
+      y : 24
     }
     
     this.connect();
@@ -166,16 +162,6 @@ class Fingers {
 
     var h = Math.atan(x / y) * 180 / Math.PI + this.mountAngleOffset.x;
     var v = Math.atan(z / y) * 180 / Math.PI + this.mountAngleOffset.y;
-
-    // Input smoothing
-    if (!this.lastH) this.lastH = h;
-    if (!this.lastV) this.lastV = v;
-
-    h = this.lastH * (1 - this.trackingSpeed) + h * this.trackingSpeed;
-    v = this.lastV * (1 - this.trackingSpeed) + v * this.trackingSpeed;
-
-    this.lastH = h;
-    this.lastV = v;
 
     if (!this.enabled)
       return;
