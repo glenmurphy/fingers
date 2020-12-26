@@ -40,7 +40,7 @@ class Fingers {
     this.mountAngleOffset = {
       x : 0,   // horizontal (how many degrees RIGHT the leap is pointing)
       y : 0,   // clockwise rotation (not used)
-      z : 5   // vertical (how many degrees DOWN the leap is pointing)
+      z : 10   // vertical (how many degrees DOWN the leap is pointing)
     }
 
     // Position of the eye relative to the leap (in mm, using the Leap coordinate system), in the
