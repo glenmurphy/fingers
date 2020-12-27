@@ -11,7 +11,7 @@ import { Buttons } from "./buttons.mjs"
 
 class Fingers {
   constructor() {
-    this.useRightHand = false;
+    this.requiredHand = null; // null (both hands) / "left" / "right"
     
     this.pilot = new AutoPilot();
     this.enabled = true;
@@ -142,7 +142,7 @@ class Fingers {
 
   findPreferredHand(hands) {
     for (const hand of hands) {
-      if (hand['type'] == (this.useRightHand ? "right" : "left")) {
+      if (hand['type'] == this.useHand) {
         return hand;
       }
     }
@@ -150,35 +150,43 @@ class Fingers {
 
   handleHands(data) {
     const hand = this.findPreferredHand(data['hands']);
-    if (!hand) return;
+    if (this.requiredHand && !hand) return;
 
-    const pointables = data['pointables'];
-    for (const pointable of pointables) {
-      if (pointable['handId'] != hand['id']) continue;
+    var closestPos = {x : 0, y : 0, distance: Infinity};
+
+    for (const pointable of data['pointables']) {
+      if (this.requiredHand && pointable['handId'] != hand['id']) continue;
+
       if (pointable['type'] != 1) continue;
 
        // Knuckle of the index finger
-      this.handlePointer(pointable['mcpPosition']);
-      break;
+      const pos = this.getPointerPosition(pointable['mcpPosition']);
+      console.log(pos);
+
+      if (pos.distance < closestPos.distance)
+        closestPos = pos;
+    }
+
+    if (closestPos.distance != Infinity && this.enabled) {
+      this.moveMouse(
+        parseInt(this.screenCenter.x + closestPos.x),
+        parseInt(this.screenCenter.y + closestPos.y));
     }
   }
 
-  handlePointer(pos) {
+  getPointerPosition(pos) {
     var x = -pos[0] - this.eyePositionOffset.x; // horizontal position
     var y = pos[1] - this.eyePositionOffset.y;  // depth
     var z = pos[2] + this.eyePositionOffset.z;  // vertical position
 
-    //console.log(`${parseInt(x)}, ${parseInt(y)}, ${parseInt(z)}`)
-
     var h = Math.atan(x / y) * 180 / Math.PI + this.mountAngleOffset.x;
     var v = Math.atan(z / y) * 180 / Math.PI + this.mountAngleOffset.z;
 
-    if (!this.enabled)
-      return;
-
-    this.moveMouse(
-      parseInt(this.screenCenter.x + h * this.inputAngleScale.x),
-      parseInt(this.screenCenter.y + v * this.inputAngleScale.y));
+    return {
+      x : h * this.inputAngleScale.x,
+      y : v * this.inputAngleScale.y,
+      distance : Math.pow(h, 2) + Math.pow(v, 2) // no need to sqrt since it's all self-comparison
+    }
   }
 }
 
