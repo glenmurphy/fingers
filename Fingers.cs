@@ -29,12 +29,12 @@ class Fingers
   // phase. You can test this by putting your hand in a fixed location and rotating your head:
   // - if the cursor stays in the same place in the cockpit you have this correct
   // - if the cursor seems to be pulled with the head, the values are too low (and vice-versa)
-  Vector2 inputAngleScale = new Vector2(16, 24);
+  Vector2 inputAngleScale = new Vector2(14, 22);
 
 
   // Scroll tracking
   private static float ScrollDetentDegrees = 10;
-  private static int ScrollDetentAmount = 100;
+  private static int ScrollDetentAmount = 500;
 
   Boolean scrollActive = false;
   Boolean scrollStarted = false;
@@ -75,8 +75,8 @@ class Fingers
           Scroll(-ScrollDetentAmount);
           scrollLastAngle -= ScrollDetentDegrees;
         }
-      }
-      if (!scrollStarted && activeHand.isActive) {
+      } else if (activeHand.isActive) {
+        // Start scrolling, set to initial positions
         scrollStarted = true;
         scrollIsLeft = activeHand.isLeft;
         scrollLastAngle = activeHand.angle;
