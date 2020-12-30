@@ -45,22 +45,6 @@ class LoopListener {
       fingers.HandleButton(LoopButton.BACK);
   }
 
-  /*
-  public async void MaintainSubscription(GattCharacteristic characteristic) {
-    while (true) {
-      GattCommunicationStatus status = 
-          await characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-          GattClientCharacteristicConfigurationDescriptorValue.Notify);
-      
-      if (status == GattCommunicationStatus.Success) {
-        Console.WriteLine("Maintained");
-      }
-
-      await Task.Delay(10000);
-    }
-  }
-  */
-
   public async void Subscribe(GattCharacteristic characteristic) {
     GattCommunicationStatus status =
       await characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
@@ -72,8 +56,9 @@ class LoopListener {
     } else {
       Console.WriteLine("Error pairing with Loop");
     }
-    //MaintainSubscription(characteristic);
 
+    // The characteristic can get GCed, causing us to stop getting notifications, so we 
+    // keep track of it in a global
     characteristics.Add(characteristic.Uuid.ToString(), characteristic);
   }
 
@@ -83,7 +68,7 @@ class LoopListener {
 
     BluetoothLEDevice loop = await BluetoothLEDevice.FromBluetoothAddressAsync(addr);
 
-    // Maintain the connection
+    // Maintain the connection (not sure this does anything)
     GattSession s = await GattSession.FromDeviceIdAsync(BluetoothDeviceId.FromId(loop.DeviceId));
     s.MaintainConnection = true;
 
@@ -100,6 +85,7 @@ class LoopListener {
       }
     }
 
+    // Prevent GC of the device and session
     loops.Add(addr, loop);
     sessions.Add(addr, s);
   }
@@ -108,6 +94,7 @@ class LoopListener {
     foreach (var p in eventArgs.Advertisement.ServiceUuids) {
       if (p == loopService) {
         ConnectDevice(eventArgs.BluetoothAddress);
+        break;
       }
     }
   }

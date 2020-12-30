@@ -21,3 +21,4 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 
 * [OnShape Model for the Pimax/Leap mount](https://cad.onshape.com/documents/ae5a6cb30a9eb6d1e482df71/w/023af4907bc823d27392def4/e/ad8553e8c3b3b2fdd51e0683)
 * You're almost certainly better off buying [PointCTRL](http://pointctrl.com/) - I made this because I'm still waiting for one :)
+* This was previously a Deno/Chrome app, but [swapped to C#](https://github.com/glenmurphy/fingers/commit/4073f3e6cb88f640333d66b5c22c00bcc68cfe3f)

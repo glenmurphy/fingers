@@ -14,8 +14,6 @@ class LeapHandler
 
     controller = new Leap.Controller();
 
-    controller.Connect += OnServiceConnect;
-    controller.Disconnect += OnServiceDisconnect;
     controller.FrameReady += OnFrame;
     controller.Device += OnConnect;
     controller.DeviceLost += OnDisconnect;
@@ -23,15 +21,11 @@ class LeapHandler
     controller.LogMessage += OnLogMessage;
   }
 
-  public void OnInit(Controller controller)
-  {
-    Console.WriteLine("Leap Initialized");
-  }
-
   public void OnConnect(object sender, DeviceEventArgs args)
   {
     Console.WriteLine("Leap Connected");
 
+    // Need to do this after we've connected
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_ALLOW_PAUSE_RESUME);
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_BACKGROUND_FRAMES);
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_OPTIMIZE_HMD);
@@ -55,7 +49,6 @@ class LeapHandler
         if (finger.Type != Finger.FingerType.TYPE_INDEX) continue;
         Bone mcp = finger.Bone(Bone.BoneType.TYPE_METACARPAL);
 
-        // I have no idea why, but IsLeft seems to be reversed
         if (hand.IsLeft) {
           leftHandPos = mcp.PrevJoint;
         } else {
@@ -68,21 +61,6 @@ class LeapHandler
     {
       fingers.UpdateHands(leftHandPos, rightHandPos);
     }
-  }
-
-  public void OnServiceConnect(object sender, ConnectionEventArgs args)
-  {
-    Console.WriteLine("Service Connected");
-  }
-
-  public void OnServiceDisconnect(object sender, ConnectionLostEventArgs args)
-  {
-    Console.WriteLine("Service Disconnected");
-  }
-
-  public void OnServiceChange(Controller controller)
-  {
-    Console.WriteLine("Service Changed");
   }
 
   public void OnDeviceFailure(object sender, DeviceFailureEventArgs args)

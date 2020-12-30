@@ -12,6 +12,8 @@ class Fingers
   bool useRightHand = false;
   long lastClicked = 0;
 
+  uint minDist = 150; // From the sensor
+
   Vector2 screenCenter;
   Vector2 resetPoint;
 
@@ -33,11 +35,11 @@ class Fingers
 
   public void UpdateHands(Leap.Vector left, Leap.Vector right)
   {
-    if (left.Magnitude == 0 && right.Magnitude == 0) {
+    if (left.Magnitude < minDist && right.Magnitude < minDist) {
       return;
-    } else if (left.Magnitude == 0 && right.Magnitude != 0) {
+    } else if (left.Magnitude < minDist && right.Magnitude >= minDist) {
       SetCursorPos(getScreenPosition(right));
-    } else if (left.Magnitude != 0 && right.Magnitude == 0) {
+    } else if (left.Magnitude < minDist && right.Magnitude >= minDist) {
       SetCursorPos(getScreenPosition(left));
     } else {
       Vector2 l = getScreenPosition(left);
