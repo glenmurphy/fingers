@@ -1,1 +1,2 @@
-.deno_plugins/
+bin/
+obj/

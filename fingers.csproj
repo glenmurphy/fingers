@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net4.8</TargetFramework>
+    <RootNamespace>fingers</RootNamespace>
+    <TargetPlatformVersion>10.0</TargetPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.Runtime.InteropServices.WindowsRuntime" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="LeapCSharp.NET4.0">
+      <HintPath>C:\bin\LeapSDK\lib\LeapCSharp.NET4.0.dll</HintPath>
+    </Reference>
+    
+    <Reference Include="Windows">
+      <HintPath>C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.18362.0\Windows.winmd</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+  </ItemGroup>
+
+  <Target Name="TestTarget" AfterTargets="Build">
+    <Copy SourceFiles="C:\\bin\\LeapSDK\\lib\\x64\\Leap.dll" DestinationFolder="$(OutputPath)" ContinueOnError="false" />
+    <Copy SourceFiles="C:\\bin\\LeapSDK\\lib\\x64\\LeapC.dll" DestinationFolder="$(OutputPath)" ContinueOnError="false" />
+  </Target>
+</Project>
