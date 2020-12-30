@@ -20,7 +20,7 @@ public class Winput {
   }
 
   [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
-  public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+  public static extern void mouse_event(uint dwFlags, uint dx, uint dy, int cButtons, uint dwExtraInfo);
 
   [DllImport("User32.dll")]
   private static extern bool SetCursorPos(int x, int y);
@@ -29,8 +29,8 @@ public class Winput {
     SetCursorPos(x, y);
   }
 
-  public static void ScrollMouse(bool isUp) {
-    mouse_event((uint) MouseEventF.Wheel, 0, 0, (uint) (isUp ? 50 : -50), 0);
+  public static void ScrollMouse(int amount) {
+    mouse_event((uint) MouseEventF.Wheel, 0, 0, amount, 0);
   }
 
   public async static void ClickMouse(bool isLeft) {

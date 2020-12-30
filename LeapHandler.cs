@@ -1,16 +1,25 @@
 using System;
 using Leap;
 
+public struct HandData {
+  public Boolean isLeft;
+  public Boolean isActive;
+  public Leap.Vector pos;
+  public float angle;
+}
+
 class LeapHandler
 {
   private Fingers fingers;
-  Leap.Vector leftHandPos;
-  Leap.Vector rightHandPos;
-  Leap.Vector nullVector = new Leap.Vector(0, 0, 0);
+  HandData leftHand;
+  HandData rightHand;
   Leap.IController controller;
   
   public LeapHandler(Fingers parent) {
     fingers = parent;
+
+    leftHand = new HandData() { isLeft = true };
+    rightHand = new HandData();
 
     controller = new Leap.Controller();
 
@@ -35,31 +44,36 @@ class LeapHandler
   {
     Console.WriteLine("Leap Disconnected");
   }
-
   public void OnFrame(object sender, FrameEventArgs args)
   {
     // Get the most recent frame and report some basic information
     Frame frame = args.frame;
 
-    leftHandPos = nullVector;
-    rightHandPos = nullVector;
+    leftHand.isActive = false;
+    rightHand.isActive = false;
+
     foreach (Hand hand in frame.Hands)
     {
       foreach (Finger finger in hand.Fingers) {
         if (finger.Type != Finger.FingerType.TYPE_INDEX) continue;
+
         Bone mcp = finger.Bone(Bone.BoneType.TYPE_METACARPAL);
 
         if (hand.IsLeft) {
-          leftHandPos = mcp.PrevJoint;
+          leftHand.pos = mcp.NextJoint;
+          leftHand.isActive = true;
+          leftHand.angle = mcp.NextJoint[2]; // Actual rotation is not reliable, use pos
         } else {
-          rightHandPos = mcp.PrevJoint;
+          rightHand.pos = mcp.NextJoint;
+          rightHand.isActive = true;
+          rightHand.angle = mcp.NextJoint[2]; // Actual rotation is not reliable, use pos
         }
       }
     }
 
     if (frame.Hands.Count != 0)
     {
-      fingers.UpdateHands(leftHandPos, rightHandPos);
+      fingers.HandleHands(leftHand, rightHand);
     }
   }
 

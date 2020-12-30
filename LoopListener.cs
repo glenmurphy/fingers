@@ -10,18 +10,20 @@ using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
 
 enum LoopButton {
-  CENTER,
-  UP,
-  DOWN,
-  FWD,
-  BACK
+  CENTER = 1,
+  UP = 2,
+  DOWN = 4,
+  FWD = 8,
+  BACK = 16
 }
 
 class LoopListener {
   Fingers fingers;
-  private static Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
-  private static Dictionary<ulong, GattSession> sessions = new Dictionary<ulong, GattSession>();
-  private static Dictionary<string, GattCharacteristic> characteristics = new Dictionary<string, GattCharacteristic>();
+  private Dictionary<LoopButton, Boolean> state = new Dictionary<LoopButton, Boolean>();
+
+  private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
+  private Dictionary<ulong, GattSession> sessions = new Dictionary<ulong, GattSession>();
+  private Dictionary<string, GattCharacteristic> characteristics = new Dictionary<string, GattCharacteristic>();
 
   private Guid loopService = new Guid("39de08dc-624e-4d6f-8e42-e1adb7d92fe1");
   private Guid loopChar = new Guid("53b2ad55-c810-4c75-8a25-e1883a081ef6");
@@ -33,16 +35,17 @@ class LoopListener {
 
     uint pressed = input[4];
 
-    if ((pressed & 1) == 1)
-      fingers.HandleButton(LoopButton.CENTER);
-    if ((pressed & 2) == 2)
-      fingers.HandleButton(LoopButton.UP);
-    if ((pressed & 4) == 4)
-      fingers.HandleButton(LoopButton.DOWN);
-    if ((pressed & 8) == 8)
-      fingers.HandleButton(LoopButton.FWD);
-    if ((pressed & 16) == 16)
-      fingers.HandleButton(LoopButton.BACK);
+    foreach(LoopButton button in Enum.GetValues(typeof(LoopButton))) {
+      if ((pressed & (uint)button) == (uint)button) {
+        if (state[button] != true) {
+          fingers.HandleLoopEvent(button, true);
+          state[button] = true;
+        }
+      } else if (state[button] == true) {
+        fingers.HandleLoopEvent(button, false);
+        state[button] = false;
+      }
+    }
   }
 
   public async void Subscribe(GattCharacteristic characteristic) {
@@ -101,6 +104,11 @@ class LoopListener {
 
   public LoopListener(Fingers parent) {
     fingers = parent;
+    
+    foreach(LoopButton button in Enum.GetValues(typeof(LoopButton))) {
+      state[button] = false;
+    }
+
     // https://docs.microsoft.com/en-us/windows/uwp/devices-sensors/gatt-client
 
     var watcher = new BluetoothLEAdvertisementWatcher();

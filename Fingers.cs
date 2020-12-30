@@ -12,8 +12,6 @@ class Fingers
   bool useRightHand = false;
   long lastClicked = 0;
 
-  uint minDist = 150; // From the sensor
-
   Vector2 screenCenter;
   Vector2 resetPoint;
 
@@ -33,18 +31,58 @@ class Fingers
   // - if the cursor seems to be pulled with the head, the values are too low (and vice-versa)
   Vector2 inputAngleScale = new Vector2(16, 24);
 
-  public void UpdateHands(Leap.Vector left, Leap.Vector right)
+
+  // Scroll tracking
+  private static float ScrollDetentDegrees = 10;
+  private static int ScrollDetentAmount = 100;
+
+  Boolean scrollActive = false;
+  Boolean scrollStarted = false;
+  Boolean scrollIsLeft = false;
+  float scrollLastAngle = 0;
+
+  public float ConvertAngle(float leapAngle) {
+    return (leapAngle) * (180 / (float)Math.PI);
+  }
+
+  public void HandleHands(HandData left, HandData right)
   {
-    if (left.Magnitude < minDist && right.Magnitude < minDist) {
-      return;
-    } else if (left.Magnitude < minDist && right.Magnitude >= minDist) {
-      SetCursorPos(getScreenPosition(right));
-    } else if (left.Magnitude >= minDist && right.Magnitude < minDist) {
-      SetCursorPos(getScreenPosition(left));
-    } else {
-      Vector2 l = getScreenPosition(left);
-      Vector2 r = getScreenPosition(right);
-      SetCursorPos((l.LengthSquared() < r.LengthSquared()) ? l : r);
+    HandData activeHand = new HandData() { isActive = false };
+
+    if (!left.isActive && right.isActive) {
+      activeHand = right;
+    } else if (left.isActive && !right.isActive) {
+      activeHand = left;
+    } else if (left.isActive && right.isActive) {
+      Vector2 l = getScreenPosition(left.pos);
+      Vector2 r = getScreenPosition(right.pos);
+      activeHand = (l.LengthSquared() < r.LengthSquared()) ? left : right;
+    }
+
+    if (scrollActive) {
+      if (scrollStarted) {
+        HandData scrollHand = scrollIsLeft ? left : right;
+
+        if (!scrollHand.isActive) {
+          EndScroll();
+          return;
+        }
+        while (scrollHand.angle > scrollLastAngle + ScrollDetentDegrees) {
+          Scroll(ScrollDetentAmount);
+          scrollLastAngle += ScrollDetentDegrees;
+        }
+        while (scrollHand.angle < scrollLastAngle - ScrollDetentDegrees) {
+          Scroll(-ScrollDetentAmount);
+          scrollLastAngle -= ScrollDetentDegrees;
+        }
+      }
+      if (!scrollStarted && activeHand.isActive) {
+        scrollStarted = true;
+        scrollIsLeft = activeHand.isLeft;
+        scrollLastAngle = activeHand.angle;
+      }
+    } else if (activeHand.isActive) {
+      SetCursorPos(getScreenPosition(activeHand.pos));
     }
   }
 
@@ -57,25 +95,47 @@ class Fingers
     return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
   }
 
-  public void HandleButton(LoopButton b)
+  public void HandleLoopEvent(LoopButton b, Boolean pressed)
   {
-    Console.WriteLine(b);
+    Console.WriteLine("{0} {1}", b, pressed ? "pressed" : "up");
+
+    if (b == LoopButton.CENTER) {
+      if (pressed) {
+        StartScroll();
+      } else {
+        EndScroll();
+      }
+    }
+
+    if (!pressed) {
+      return;
+    }
+
     if (b == LoopButton.UP || !cursorEnabled) {
       ToggleCursorEnabled();
       return;
     }
-    
-    if (b == LoopButton.CENTER)
-      Click(0);
+
+    if (b == (useRightHand ? LoopButton.FWD : LoopButton.BACK))
+      Click(0);    
     if (b == (useRightHand ? LoopButton.BACK : LoopButton.FWD))
       Click(1);
 
-    if (b == (useRightHand ? LoopButton.FWD : LoopButton.BACK))
-      Scroll(0);
-    if (b == LoopButton.DOWN)
-      Scroll(1);
-    
     lastClicked = GetTime();
+  }
+
+  public void StartScroll()
+  {
+    Console.WriteLine("Starting scroll");
+    scrollActive = true;
+    scrollStarted = false;
+    scrollIsLeft = false;
+  }
+
+  public void EndScroll()
+  {
+    Console.WriteLine("Ending scroll");
+    scrollActive = false;
   }
 
   public void SetCursorPos(Vector2 pos) {
@@ -85,12 +145,13 @@ class Fingers
     Winput.SetCursorPosition((int)(screenCenter.X + pos.X), (int)(screenCenter.Y + pos.Y));
   }
 
-  public void Click(Int16 button) {
+  public void Click(int button) {
     Winput.ClickMouse(button == 0);
   }
 
-  public void Scroll(Int16 direction) {
-    Winput.ScrollMouse(direction == 0);
+  public void Scroll(int amount) {
+    Console.WriteLine("Scroll {0}", amount);
+    Winput.ScrollMouse(amount);
   }
 
   public Vector2 getScreenPosition(Leap.Vector pos) {
