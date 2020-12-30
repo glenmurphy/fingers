@@ -30,12 +30,10 @@ public class Winput {
   }
 
   public static void ScrollMouse(int amount) {
-    mouse_event((uint) MouseEventF.Wheel, 0, 0, amount, 0);
+    mouse_event((uint)MouseEventF.Wheel, 0, 0, amount, 0);
   }
 
-  public async static void ClickMouse(bool isLeft) {
-    mouse_event((uint) (isLeft ? MouseEventF.LeftDown : MouseEventF.RightDown), 0, 0, 0, 0);
-    await Task.Delay(96);
-    mouse_event((uint) (isLeft ? MouseEventF.LeftUp : MouseEventF.RightUp), 0, 0, 0, 0);
+  public async static void MouseButton(MouseEventF button) {
+    mouse_event((uint)button, 0, 0, 0, 0);
   }
 }

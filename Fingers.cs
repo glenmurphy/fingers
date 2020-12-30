@@ -11,6 +11,7 @@ class Fingers
   bool cursorEnabled = true;
   bool useRightHand = false;
   long lastClicked = 0;
+  int clickPause = 0; // how long to pause cursor movement after mouseDown events
 
   Vector2 screenCenter;
   Vector2 resetPoint;
@@ -29,17 +30,40 @@ class Fingers
   // phase. You can test this by putting your hand in a fixed location and rotating your head:
   // - if the cursor stays in the same place in the cockpit you have this correct
   // - if the cursor seems to be pulled with the head, the values are too low (and vice-versa)
-  Vector2 inputAngleScale = new Vector2(14, 22);
-
+  Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
 
   // Scroll tracking
-  private static float ScrollDetentDegrees = 10;
-  private static int ScrollDetentAmount = 500;
+  // DCS uses both individual events (for discrete things like channel selectors) as well as
+  // amounts for analog things like brightness controls - need to strike a balance between making
+  // one too sensitive and the other too insensitive
+  private static float ScrollDetentDegrees = 15;
+  private static int ScrollDetentAmount = 750;
 
   Boolean scrollActive = false;
   Boolean scrollStarted = false;
   Boolean scrollIsLeft = false;
   float scrollLastAngle = 0;
+
+  public Fingers()
+  {
+    screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
+    
+    resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
+
+    // experimental
+    float hScale = SystemInformation.VirtualScreen.Height / 100.0f;
+    float vScale = hScale * 1.5f;
+    inputAngleScale = new Vector2(hScale, vScale);
+    
+    Winput.SetCursorPosition((int)resetPoint.X, (int)resetPoint.Y);
+
+    LeapHandler leap = new LeapHandler(this);
+    LoopListener loop = new LoopListener(this);
+
+    // Keep this process running
+    Console.ReadLine();
+  }
+
 
   public float ConvertAngle(float leapAngle) {
     return (leapAngle) * (180 / (float)Math.PI);
@@ -98,8 +122,10 @@ class Fingers
   public void HandleLoopEvent(LoopButton b, Boolean pressed)
   {
     Console.WriteLine("{0} {1}", b, pressed ? "pressed" : "up");
+    LoopButton fwdButton = (useRightHand ? LoopButton.FWD : LoopButton.BACK);
+    LoopButton backButton = (useRightHand ? LoopButton.BACK : LoopButton.FWD);
 
-    if (b == LoopButton.CENTER) {
+    if (b == fwdButton) {
       if (pressed) {
         StartScroll();
       } else {
@@ -107,19 +133,20 @@ class Fingers
       }
     }
 
-    if (!pressed) {
-      return;
-    }
-
-    if (b == LoopButton.UP || !cursorEnabled) {
+    if (pressed && (b == LoopButton.UP || !cursorEnabled)) {
       ToggleCursorEnabled();
       return;
     }
 
-    if (b == (useRightHand ? LoopButton.FWD : LoopButton.BACK))
-      Click(0);    
-    if (b == (useRightHand ? LoopButton.BACK : LoopButton.FWD))
-      Click(1);
+    if (b == LoopButton.CENTER && pressed) {
+      Winput.MouseButton(Winput.MouseEventF.LeftDown);
+    } else if (b == LoopButton.CENTER && !pressed) {
+      Winput.MouseButton(Winput.MouseEventF.LeftUp);
+    } else if (b == backButton && pressed) {
+      Winput.MouseButton(Winput.MouseEventF.RightDown);
+    } else if (b == backButton && pressed) {
+      Winput.MouseButton(Winput.MouseEventF.RightUp);
+    }
 
     lastClicked = GetTime();
   }
@@ -139,14 +166,10 @@ class Fingers
   }
 
   public void SetCursorPos(Vector2 pos) {
-    if (!cursorEnabled || GetTime() < lastClicked + 96)
+    if (!cursorEnabled || GetTime() < lastClicked + clickPause)
       return;
     
     Winput.SetCursorPosition((int)(screenCenter.X + pos.X), (int)(screenCenter.Y + pos.Y));
-  }
-
-  public void Click(int button) {
-    Winput.ClickMouse(button == 0);
   }
 
   public void Scroll(int amount) {
@@ -166,22 +189,6 @@ class Fingers
       h * inputAngleScale.X,
       v * inputAngleScale.Y
     );
-  }
-
-  public Fingers()
-  {
-    screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
-    
-    resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
-    
-    Winput.SetCursorPosition((int)resetPoint.X, (int)resetPoint.Y);
-
-    LeapHandler leap = new LeapHandler(this);
-    LoopListener loop = new LoopListener(this);
-
-    // Keep this process running until Enter is pressed
-    // Console.WriteLine("Press any key to quit...");
-    Console.ReadLine();
   }
 
   public static void Main()
