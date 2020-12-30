@@ -39,7 +39,7 @@ class Fingers
       return;
     } else if (left.Magnitude < minDist && right.Magnitude >= minDist) {
       SetCursorPos(getScreenPosition(right));
-    } else if (left.Magnitude < minDist && right.Magnitude >= minDist) {
+    } else if (left.Magnitude >= minDist && right.Magnitude < minDist) {
       SetCursorPos(getScreenPosition(left));
     } else {
       Vector2 l = getScreenPosition(left);
