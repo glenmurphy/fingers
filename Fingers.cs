@@ -33,6 +33,8 @@ class Fingers
   // phase. You can test this by putting your hand in a fixed location and rotating your head:
   // - if the cursor stays in the same place in the cockpit you have this correct
   // - if the cursor seems to be pulled with the head, the values are too low (and vice-versa)
+  //
+  // Right now this is overriden by the experimental config code in Fingers()
   Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
 
   // Scroll tracking
@@ -56,7 +58,10 @@ class Fingers
     resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
 
     // experimental
-    float hScale = SystemInformation.VirtualScreen.Height / 100.0f;
+    // we want to do this based on the width/height of the DCS window, but this is a good 
+    // approximation for Pimax 'Small' FOV, which means it works well at 'normal', and should
+    // work OK on smaller headsets
+    float hScale = SystemInformation.VirtualScreen.Height / 100.0f; 
     float vScale = hScale * 1.5f;
     inputAngleScale = new Vector2(hScale, vScale);
     

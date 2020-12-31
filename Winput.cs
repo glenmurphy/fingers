@@ -33,7 +33,7 @@ public class Winput {
     mouse_event((uint)MouseEventF.Wheel, 0, 0, amount, 0);
   }
 
-  public async static void MouseButton(MouseEventF button) {
+  public static void MouseButton(MouseEventF button) {
     mouse_event((uint)button, 0, 0, 0, 0);
   }
 }
