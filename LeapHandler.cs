@@ -65,11 +65,11 @@ class LeapHandler
 
           // Actual rotation is not reliable; use a combination of X/Y pos so users can drag
           // either horizontally or vertically
-          leftHand.angle = mcp.NextJoint[2] - mcp.NextJoint[0];
+          leftHand.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
         } else {
           rightHand.pos = mcp.NextJoint;
           rightHand.isActive = true;
-          rightHand.angle = mcp.NextJoint[2] - mcp.NextJoint[0];
+          rightHand.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
         }
       }
     }

@@ -10,9 +10,12 @@ class Fingers
 {
   bool cursorEnabled = true;
   bool useRightHand = false;
-  long lastClicked = 0;
-  int clickPause = 0; // how long to pause cursor movement after mouseDown events
 
+  // how long to pause cursor movement after mouseDown events; not useful in DCS, but helps prevent
+  // accidental scrolling/dragging in other places (e.g. text editors)
+  int clickPause = 0;
+  long lastClicked = 0;
+  
   Vector2 screenCenter;
   Vector2 resetPoint;
 
@@ -38,10 +41,12 @@ class Fingers
   // one too sensitive and the other too insensitive
   private static float ScrollDetentDegrees = 15;
   private static int ScrollDetentAmount = 750;
+  private static int ScrollClickTime = 200;
 
-  Boolean scrollActive = false;
+  long scrollInitTime = 0;
   Boolean scrollStarted = false;
   Boolean scrollIsLeft = false;
+  Boolean scrolled = false;
   float scrollLastAngle = 0;
 
   public Fingers()
@@ -83,7 +88,7 @@ class Fingers
       activeHand = (l.LengthSquared() < r.LengthSquared()) ? left : right;
     }
 
-    if (scrollActive) {
+    if (scrollInitTime != 0) {
       if (scrollStarted) {
         HandData scrollHand = scrollIsLeft ? left : right;
 
@@ -92,11 +97,11 @@ class Fingers
           return;
         }
         while (scrollHand.angle > scrollLastAngle + ScrollDetentDegrees) {
-          Scroll(ScrollDetentAmount);
+          Scroll(-ScrollDetentAmount);
           scrollLastAngle += ScrollDetentDegrees;
         }
         while (scrollHand.angle < scrollLastAngle - ScrollDetentDegrees) {
-          Scroll(-ScrollDetentAmount);
+          Scroll(ScrollDetentAmount);
           scrollLastAngle -= ScrollDetentDegrees;
         }
       } else if (activeHand.isActive) {
@@ -129,6 +134,11 @@ class Fingers
       if (pressed) {
         StartScroll();
       } else {
+        // If we just tapped the button and didn't do anything, then send a single scroll event
+        // this is useful for discrete controls
+        if (GetTime() < scrollInitTime + ScrollClickTime && scrolled == false) {
+          Scroll(ScrollDetentAmount);
+        }
         EndScroll();
       }
     }
@@ -140,29 +150,39 @@ class Fingers
 
     if (b == LoopButton.CENTER && pressed) {
       Winput.MouseButton(Winput.MouseEventF.LeftDown);
+      lastClicked = GetTime();
     } else if (b == LoopButton.CENTER && !pressed) {
       Winput.MouseButton(Winput.MouseEventF.LeftUp);
     } else if (b == backButton && pressed) {
       Winput.MouseButton(Winput.MouseEventF.RightDown);
+      lastClicked = GetTime();
     } else if (b == backButton && pressed) {
       Winput.MouseButton(Winput.MouseEventF.RightUp);
+    } else if (b == LoopButton.DOWN && pressed) {
+      Scroll(-ScrollDetentAmount);
     }
-
-    lastClicked = GetTime();
   }
 
   public void StartScroll()
   {
     Console.WriteLine("Starting scroll");
-    scrollActive = true;
+    scrollInitTime = GetTime();
     scrollStarted = false;
+    scrolled = false;
     scrollIsLeft = false;
+  }
+
+  public void Scroll(int amount)
+  {
+    Console.WriteLine("Scroll {0}", amount);
+    scrolled = true;
+    Winput.ScrollMouse(amount);
   }
 
   public void EndScroll()
   {
     Console.WriteLine("Ending scroll");
-    scrollActive = false;
+    scrollInitTime = 0;
   }
 
   public void SetCursorPos(Vector2 pos) {
@@ -172,10 +192,6 @@ class Fingers
     Winput.SetCursorPosition((int)(screenCenter.X + pos.X), (int)(screenCenter.Y + pos.Y));
   }
 
-  public void Scroll(int amount) {
-    Console.WriteLine("Scroll {0}", amount);
-    Winput.ScrollMouse(amount);
-  }
 
   public Vector2 getScreenPosition(Leap.Vector pos) {
     float x = -pos[0] - eyePositionOffset.X;
