@@ -20,7 +20,6 @@ enum LoopButton {
 class LoopListener {
   Fingers fingers;
   private Dictionary<LoopButton, Boolean> state = new Dictionary<LoopButton, Boolean>();
-
   private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
   private Dictionary<ulong, GattSession> sessions = new Dictionary<ulong, GattSession>();
   private Dictionary<string, GattCharacteristic> characteristics = new Dictionary<string, GattCharacteristic>();
@@ -29,7 +28,7 @@ class LoopListener {
   private Guid loopChar = new Guid("53b2ad55-c810-4c75-8a25-e1883a081ef6");
 
   public void CharHandler(GattCharacteristic sender, GattValueChangedEventArgs args) {
-    var reader = DataReader.FromBuffer(args.CharacteristicValue);
+    DataReader reader = DataReader.FromBuffer(args.CharacteristicValue);
     byte[] input = new byte[reader.UnconsumedBufferLength];
     reader.ReadBytes(input);
 
@@ -56,18 +55,18 @@ class LoopListener {
     if (status == GattCommunicationStatus.Success) {
       characteristic.ValueChanged += CharHandler;
       Console.WriteLine("Loop paired");
+
+      // The characteristic can get GCed, causing us to stop getting notifications, so we 
+      // keep track of it in a global
+      characteristics[characteristic.Uuid.ToString()] = characteristic;
     } else {
       Console.WriteLine("Error pairing with Loop");
     }
-
-    // The characteristic can get GCed, causing us to stop getting notifications, so we 
-    // keep track of it in a global
-    characteristics.Add(characteristic.Uuid.ToString(), characteristic);
   }
 
+
   public async void ConnectDevice(ulong addr) {
-    if (loops.ContainsKey(addr))
-      return;
+    Console.WriteLine((loops.ContainsKey(addr) ? "Reconnecting" : "Connecting") + " to loop...");
 
     BluetoothLEDevice loop = await BluetoothLEDevice.FromBluetoothAddressAsync(addr);
 
@@ -76,21 +75,37 @@ class LoopListener {
     s.MaintainConnection = true;
 
     GattDeviceServicesResult serviceResult = await loop.GetGattServicesAsync(BluetoothCacheMode.Uncached);
-    GattCharacteristicsResult charResult;
 
-    foreach (var service in serviceResult.Services) {
-      if (service.Uuid != loopService) continue;
+    foreach (GattDeviceService service in serviceResult.Services) {
+      if (service.Uuid.Equals(GattServiceUuids.Battery)) {
+        GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
 
-      charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
-      foreach (GattCharacteristic characteristic in charResult.Characteristics) {
-        if (characteristic.Uuid != loopChar) continue;
-        Subscribe(characteristic);
+        foreach (GattCharacteristic characteristic in charResult.Characteristics) {
+          if(characteristic.Uuid.Equals(GattCharacteristicUuids.BatteryLevel)) {
+            GattReadResult batt = await characteristic.ReadValueAsync();
+
+            DataReader reader = DataReader.FromBuffer(batt.Value);
+            byte[] input = new byte[reader.UnconsumedBufferLength];
+            reader.ReadBytes(input);
+            Console.WriteLine("Loop battery: {0}%", input[0]);
+            break;
+          }
+        }
+      } else if (service.Uuid.Equals(loopService)) {
+        GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
+
+        foreach (GattCharacteristic characteristic in charResult.Characteristics) {
+          if (characteristic.Uuid.Equals(loopChar)) {
+            Subscribe(characteristic);
+            break;
+          }
+        }
       }
     }
 
     // Prevent GC of the device and session
-    loops.Add(addr, loop);
-    sessions.Add(addr, s);
+    loops[addr] = loop;
+    sessions[addr] = s;
   }
 
   public void OnAdvertisementReceived(BluetoothLEAdvertisementWatcher watcher, BluetoothLEAdvertisementReceivedEventArgs eventArgs) {
