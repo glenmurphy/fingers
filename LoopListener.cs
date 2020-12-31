@@ -57,7 +57,7 @@ class LoopListener {
       Console.WriteLine("Loop paired");
 
       // The characteristic can get GCed, causing us to stop getting notifications, so we 
-      // keep track of it in a global
+      // keep track of it
       characteristics[characteristic.Uuid.ToString()] = characteristic;
     } else {
       Console.WriteLine("Error pairing with Loop");

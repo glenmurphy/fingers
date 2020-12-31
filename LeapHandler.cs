@@ -74,8 +74,7 @@ class LeapHandler
       }
     }
 
-    if (frame.Hands.Count != 0)
-    {
+    if (frame.Hands.Count != 0) {
       fingers.HandleHands(leftHand, rightHand);
     }
   }
@@ -104,6 +103,5 @@ class LeapHandler
         Console.WriteLine("Leap Message: [Unknown]");
         break;
     }
-    //Console.WriteLine("[{0}] {1}", args.timestamp, args.message);
   }
 }

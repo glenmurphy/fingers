@@ -203,8 +203,8 @@ class Fingers
     float y = pos[1] - eyePositionOffset.Y;
     float z = pos[2] + eyePositionOffset.Z;
 
-    float h = (float)Math.Atan(x / y) * 180 /(float)Math.PI + mountAngleOffset.X;
-    float v = (float)Math.Atan(z / y) * 180 /(float)Math.PI + mountAngleOffset.Z;
+    float h = (float)Math.Atan2(x, y) * 180 /(float)Math.PI + mountAngleOffset.X;
+    float v = (float)Math.Atan2(z, y) * 180 /(float)Math.PI + mountAngleOffset.Z;
 
     return new Vector2(
       h * inputAngleScale.X,
