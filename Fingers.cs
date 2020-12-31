@@ -161,7 +161,7 @@ class Fingers
     } else if (b == backButton && pressed) {
       Winput.MouseButton(Winput.MouseEventF.RightDown);
       lastClicked = GetTime();
-    } else if (b == backButton && pressed) {
+    } else if (b == backButton && !pressed) {
       Winput.MouseButton(Winput.MouseEventF.RightUp);
     } else if (b == LoopButton.DOWN && pressed) {
       Scroll(-ScrollDetentAmount);
