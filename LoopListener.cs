@@ -9,7 +9,7 @@ using Windows.Devices.Bluetooth.Advertisement;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Devices.Enumeration;
 
-enum LoopButton {
+public enum LoopButton {
   CENTER = 1,
   UP = 2,
   DOWN = 4,

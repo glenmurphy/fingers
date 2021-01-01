@@ -1,12 +1,8 @@
 ﻿using System;
 using System.Numerics; // Vector
-using System.Threading;
-using System.Reflection; // Delegates
 using System.Windows.Forms; // SystemInformation
-// Leap
-using Leap;
 
-class Fingers
+public class Fingers
 {
   bool cursorEnabled = true;
   bool useRightHand = false;
@@ -65,6 +61,8 @@ class Fingers
     float vScale = hScale * 1.5f;
     inputAngleScale = new Vector2(hScale, vScale);
     
+    DCS.Monitor(this);
+
     Winput.SetCursorPosition((int)resetPoint.X, (int)resetPoint.Y);
 
     LeapHandler leap = new LeapHandler(this);
@@ -74,9 +72,36 @@ class Fingers
     Console.ReadLine();
   }
 
+  public void HandleDCSWindow(Vector4 dim)
+  {
+    Console.WriteLine("DCS Window Size Adjustment: {0}", dim);
 
-  public float ConvertAngle(float leapAngle) {
-    return (leapAngle) * (180 / (float)Math.PI);
+    // When you're using the VR mouse cursor mode, DCS translates mouse movement over 
+    // its window into a fixed 2D plane in the game world - a mouse cursor a corner of 
+    // the DCS window always translates into the same position in-game, regardless of 
+    // the player's FOV or the size/ratio of the main DCS window, so we need to compensate
+    // for the size of that window always mapping to the same thing. You can see this 
+    // window when you bring up the ESC menu.
+    //
+    // Right now we assume (via testing) that that inner screen is 100 degrees wide with 16:9 aspect
+    // ratio (this seems constant regardless of desktop res)
+    float degreesWidth = 100f;
+    float ratio = 16f/10f; 
+    inputAngleScale = new Vector2(dim.W / degreesWidth, dim.Z / (degreesWidth / ratio));
+  }
+
+  public Vector2 getScreenPosition(Leap.Vector pos) {
+    float x = -pos[0] - eyePositionOffset.X; // horizontal
+    float y = pos[1] - eyePositionOffset.Y;  // depth
+    float z = pos[2] + eyePositionOffset.Z;  // upness
+
+    float h = (float)Math.Atan2(x, y) * 180 /(float)Math.PI + mountAngleOffset.X;
+    float v = (float)Math.Atan2(z, y) * 180 /(float)Math.PI + mountAngleOffset.Z;
+
+    return new Vector2(
+      h * inputAngleScale.X,
+      v * inputAngleScale.Y
+    );
   }
 
   public void HandleHands(HandData left, HandData right)
@@ -195,21 +220,6 @@ class Fingers
       return;
     
     Winput.SetCursorPosition((int)(screenCenter.X + pos.X), (int)(screenCenter.Y + pos.Y));
-  }
-
-
-  public Vector2 getScreenPosition(Leap.Vector pos) {
-    float x = -pos[0] - eyePositionOffset.X;
-    float y = pos[1] - eyePositionOffset.Y;
-    float z = pos[2] + eyePositionOffset.Z;
-
-    float h = (float)Math.Atan2(x, y) * 180 /(float)Math.PI + mountAngleOffset.X;
-    float v = (float)Math.Atan2(z, y) * 180 /(float)Math.PI + mountAngleOffset.Z;
-
-    return new Vector2(
-      h * inputAngleScale.X,
-      v * inputAngleScale.Y
-    );
   }
 
   public static void Main()
