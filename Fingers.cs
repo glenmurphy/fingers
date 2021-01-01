@@ -24,13 +24,20 @@ public class Fingers
   // leap's rotation system (so 'down' is parallel to the screen)
   Vector3 eyePositionOffset = new Vector3(0, -110, -73);
 
-  // scaling angle to screen pixels / HMD fov
-  // This can change as you change the position offset and ideally we would have a calibration
-  // phase. You can test this by putting your hand in a fixed location and rotating your head:
-  // - if the cursor stays in the same place in the cockpit you have this correct
-  // - if the cursor seems to be pulled with the head, the values are too low (and vice-versa)
+  // When you're using the VR mouse cursor mode, DCS translates mouse movement over 
+  // its window into a fixed 2D plane in the game world - a mouse cursor a corner of 
+  // the DCS window always translates into the same position in-game, regardless of 
+  // the player's FOV or the size/ratio of the main DCS window, so we need to compensate
+  // for the size of that window always mapping to the same thing. You can see this 
+  // window when you bring up the ESC menu.
   //
-  // Right now this is overriden by the experimental config code in Fingers()
+  // Right now we assume (via testing) that that inner screen is 100 degrees wide with 16:9 aspect
+  // ratio (this seems constant regardless of desktop res)
+  float degreesWidth = 100f;
+  float ratio = 16f/10f;
+
+  // The above is translated using this variable, which is set in HandleDCSWindow; here are some
+  // reasonable default values
   Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
 
   // Scroll tracking
@@ -52,14 +59,6 @@ public class Fingers
     screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
     
     resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
-
-    // experimental
-    // we want to do this based on the width/height of the DCS window, but this is a good 
-    // approximation for Pimax 'Small' FOV, which means it works well at 'normal', and should
-    // work OK on smaller headsets
-    float hScale = SystemInformation.VirtualScreen.Height / 100.0f; 
-    float vScale = hScale * 1.5f;
-    inputAngleScale = new Vector2(hScale, vScale);
     
     DCS.Monitor(this);
 
@@ -75,18 +74,6 @@ public class Fingers
   public void HandleDCSWindow(Vector4 dim)
   {
     Console.WriteLine("DCS Window Size Adjustment: {0}", dim);
-
-    // When you're using the VR mouse cursor mode, DCS translates mouse movement over 
-    // its window into a fixed 2D plane in the game world - a mouse cursor a corner of 
-    // the DCS window always translates into the same position in-game, regardless of 
-    // the player's FOV or the size/ratio of the main DCS window, so we need to compensate
-    // for the size of that window always mapping to the same thing. You can see this 
-    // window when you bring up the ESC menu.
-    //
-    // Right now we assume (via testing) that that inner screen is 100 degrees wide with 16:9 aspect
-    // ratio (this seems constant regardless of desktop res)
-    float degreesWidth = 100f;
-    float ratio = 16f/10f; 
     inputAngleScale = new Vector2(dim.W / degreesWidth, dim.Z / (degreesWidth / ratio));
   }
 
