@@ -1,21 +1,15 @@
 using System;
 using Leap;
 
-public struct HandData {
-  public Boolean isLeft;
-  public Boolean isActive;
-  public Leap.Vector pos;
-  public float angle;
-}
-
 class LeapHandler
 {
   private Fingers fingers;
   HandData leftHand;
   HandData rightHand;
   Leap.IController controller;
-  
-  public LeapHandler(Fingers parent) {
+
+  public LeapHandler(Fingers parent)
+  {
     fingers = parent;
 
     leftHand = new HandData() { isLeft = true };
@@ -54,19 +48,23 @@ class LeapHandler
 
     foreach (Hand hand in frame.Hands)
     {
-      foreach (Finger finger in hand.Fingers) {
+      foreach (Finger finger in hand.Fingers)
+      {
         if (finger.Type != Finger.FingerType.TYPE_INDEX) continue;
 
         Bone mcp = finger.Bone(Bone.BoneType.TYPE_METACARPAL);
 
-        if (hand.IsLeft) {
+        if (hand.IsLeft)
+        {
           leftHand.pos = mcp.NextJoint;
           leftHand.isActive = true;
 
           // Actual rotation is not reliable; use a combination of X/Y pos so users can drag
           // either horizontally or vertically
           leftHand.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
-        } else {
+        }
+        else
+        {
           rightHand.pos = mcp.NextJoint;
           rightHand.isActive = true;
           rightHand.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
@@ -74,7 +72,8 @@ class LeapHandler
       }
     }
 
-    if (frame.Hands.Count != 0) {
+    if (frame.Hands.Count != 0)
+    {
       fingers.HandleHands(leftHand, rightHand);
     }
   }

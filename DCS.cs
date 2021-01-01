@@ -12,17 +12,18 @@ public class DCS
   [DllImport("user32.dll")]
   [return: MarshalAs(UnmanagedType.Bool)]
   static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-  
+
   [StructLayout(LayoutKind.Sequential)]
   public struct RECT
   {
-      public int Left;        // x position of upper-left corner
-      public int Top;         // y position of upper-left corner
-      public int Right;       // x position of lower-right corner
-      public int Bottom;      // y position of lower-right corner
+    public int Left;        // x position of upper-left corner
+    public int Top;         // y position of upper-left corner
+    public int Right;       // x position of lower-right corner
+    public int Bottom;      // y position of lower-right corner
   }
 
-  public static async void Monitor(Fingers parent) {
+  public static async void Monitor(Fingers parent)
+  {
     Vector4 result = new Vector4();
     Vector4 lastResult = new Vector4();
     IntPtr hWnd;
@@ -36,10 +37,11 @@ public class DCS
         GetWindowRect(hWnd, out rect);
         result.X = rect.Left;
         result.Y = rect.Top;
-        result.W = rect.Right - rect.Left; // width
         result.Z = rect.Bottom - rect.Top; // height
+        result.W = rect.Right - rect.Left; // width
 
-        if (result.Z > 600 && !lastResult.Equals(result)) {
+        if (result.Z > 600 && !lastResult.Equals(result))
+        {
           parent.HandleDCSWindow(result);
           lastResult = result;
         }
@@ -49,28 +51,20 @@ public class DCS
     }
   }
 
-  public static IntPtr GetDCSWindow() {
+  public static IntPtr GetDCSWindow()
+  {
     IntPtr hWnd = IntPtr.Zero;
     foreach (Process pList in Process.GetProcesses())
     {
-        if (pList.MainWindowTitle.Equals("")) continue;
+      if (pList.MainWindowTitle.Equals("")) continue;
 
-        if (pList.ProcessName.Equals("DCS") && 
-            pList.MainWindowTitle.Contains("Digital Combat Simulator") &&
-            !pList.MainWindowTitle.Contains("_server")) {
-            return pList.MainWindowHandle;
-        }
+      if (pList.ProcessName.Equals("DCS") &&
+          pList.MainWindowTitle.Contains("Digital Combat Simulator") &&
+          !pList.MainWindowTitle.Contains("_server"))
+      {
+        return pList.MainWindowHandle;
+      }
     }
     return hWnd;
-  }
-
-  public static Vector4 GetWindowPos()
-  {
-    IntPtr hWnd = GetDCSWindow();
-    if (hWnd == IntPtr.Zero) return new Vector4();
-
-    RECT rect;
-    GetWindowRect(hWnd, out rect);
-    return new Vector4(rect.Left, rect.Top, rect.Right, rect.Bottom);
   }
 }

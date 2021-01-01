@@ -3,9 +3,11 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-public class Winput {
+public class Winput
+{
   [Flags]
-  public enum MouseEventF {
+  public enum MouseEventF
+  {
     Move = 0x0001,
     LeftDown = 0x0002,
     LeftUp = 0x0004,
@@ -25,15 +27,18 @@ public class Winput {
   [DllImport("User32.dll")]
   private static extern bool SetCursorPos(int x, int y);
 
-  public static void SetCursorPosition(int x, int y) {
+  public static void SetCursorPosition(int x, int y)
+  {
     SetCursorPos(x, y);
   }
 
-  public static void ScrollMouse(int amount) {
+  public static void ScrollMouse(int amount)
+  {
     mouse_event((uint)MouseEventF.Wheel, 0, 0, amount, 0);
   }
 
-  public static void MouseButton(MouseEventF button) {
+  public static void MouseButton(MouseEventF button)
+  {
     mouse_event((uint)button, 0, 0, 0, 0);
   }
 }

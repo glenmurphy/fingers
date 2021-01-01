@@ -4,62 +4,67 @@ using System.Windows.Forms; // SystemInformation
 
 public class Fingers
 {
-  bool cursorEnabled = true;
-  bool useRightHand = false;
+  // Used to figure out what direction FWD is on the Loop; will deprecate when we support multiple
+  // loops (when I get multiple loops)
+  private static bool useRightHand = false;
 
   // how long to pause cursor movement after mouseDown events; not useful in DCS, but helps prevent
   // accidental scrolling/dragging in other places (e.g. text editors)
-  int clickPause = 0;
-  long lastClicked = 0;
-  
-  Vector2 screenCenter;
-  Vector2 resetPoint;
+  private static int clickPause = 0;
 
-  // Angle of the mount in degrees - x/y/z are the positional axis the angle impacts; these 
-  // have the effect of pushing the cursor in the direction of the offset, so you can use this
-  // if you want your cursor pushed more in a specific direction
-  Vector3 mountAngleOffset = new Vector3(0, 0, 10);
+  // Angle of the mount in degrees - x/y/z are the positional axis the angle impacts; these have the
+  // effect of pushing the cursor in the direction of the offset, so you can use this if you want
+  // your cursor pushed more in a specific direction
+  private static Vector3 mountAngleOffset = new Vector3(0, 0, 10);
 
   // Position of the eye relative to the leap (in mm, using the Leap coordinate system), in the
-  // leap's rotation system (so 'down' is parallel to the screen)
-  Vector3 eyePositionOffset = new Vector3(0, -110, -73);
+  // leap's rotation system (so 'down' is parallel to its front screen)
+  private static Vector3 eyePositionOffset = new Vector3(0, -110, -73);
 
-  // When you're using the VR mouse cursor mode, DCS translates mouse movement over 
-  // its window into a fixed 2D plane in the game world - a mouse cursor a corner of 
-  // the DCS window always translates into the same position in-game, regardless of 
-  // the player's FOV or the size/ratio of the main DCS window, so we need to compensate
-  // for the size of that window always mapping to the same thing. You can see this 
-  // window when you bring up the ESC menu.
+  // DCS translates mouse movement over its window into a 2D plane in the game world - you can see
+  // this window when you bring up the ESC menu where it is fixed in place, while it follows the
+  // head position at other times (this is why you get two different mouse behaviors). A mouse
+  // cursor in a corner of the DCS window always translates into the same position in-game,
+  // regardless of the player's FOV or the size/ratio of the main DCS window, so we need to
+  // compensate for the stretching DCS does to map input over its desktop window of varying size and
+  // aspect ratio to its inner window of fixed size and aspect ratio.
   //
-  // Right now we assume (via testing) that that inner screen is 100 degrees wide with 16:9 aspect
-  // ratio (this seems constant regardless of desktop res)
-  float degreesWidth = 100f;
-  float ratio = 16f/10f;
+  // This virtual screen appears to be 100 degrees wide with 16:9 aspect ratio
+  private static float inputScreenRatio = 16f / 10f;
+  private static float inputScreenWidthDegrees = 100f;
+  private static float inputScreenHeightDegrees = inputScreenWidthDegrees / inputScreenRatio;
 
   // The above is translated using this variable, which is set in HandleDCSWindow; here are some
   // reasonable default values
   Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
 
+  // The last hand we tracked
+  HandData currentHand;
+
   // Scroll tracking
-  // DCS uses both individual events (for discrete things like channel selectors) as well as
-  // amounts for analog things like brightness controls - need to strike a balance between making
-  // one too sensitive and the other too insensitive
+  // DCS uses both individual events (for discrete things like channel selectors) as well as amounts
+  // for analog things like brightness controls - need to strike a balance between making one too
+  // sensitive and the other too insensitive
   private static float ScrollDetentDegrees = 15;
   private static int ScrollDetentAmount = 750;
   private static int ScrollClickTime = 200;
 
   long scrollInitTime = 0;
-  Boolean scrollStarted = false;
-  Boolean scrollIsLeft = false;
   Boolean scrolled = false;
   float scrollLastAngle = 0;
+
+  Vector2 screenCenter;
+  Vector2 resetPoint;
+
+  long lastClicked = 0;
+  bool cursorEnabled = true;
 
   public Fingers()
   {
     screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
-    
+
     resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
-    
+
     DCS.Monitor(this);
 
     Winput.SetCursorPosition((int)resetPoint.X, (int)resetPoint.Y);
@@ -74,16 +79,18 @@ public class Fingers
   public void HandleDCSWindow(Vector4 dim)
   {
     Console.WriteLine("DCS Window Size Adjustment: {0}", dim);
-    inputAngleScale = new Vector2(dim.W / degreesWidth, dim.Z / (degreesWidth / ratio));
+    inputAngleScale = new Vector2(dim.W / inputScreenWidthDegrees,
+                                  dim.Z / inputScreenHeightDegrees);
   }
 
-  public Vector2 getScreenPosition(Leap.Vector pos) {
+  public Vector2 getScreenPosition(Leap.Vector pos)
+  {
     float x = -pos[0] - eyePositionOffset.X; // horizontal
-    float y = pos[1] - eyePositionOffset.Y;  // depth
-    float z = pos[2] + eyePositionOffset.Z;  // upness
+    float y = pos[1] - eyePositionOffset.Y; // depth
+    float z = pos[2] + eyePositionOffset.Z; // upness
 
-    float h = (float)Math.Atan2(x, y) * 180 /(float)Math.PI + mountAngleOffset.X;
-    float v = (float)Math.Atan2(z, y) * 180 /(float)Math.PI + mountAngleOffset.Z;
+    float h = (float)Math.Atan2(x, y) * 180 / (float)Math.PI + mountAngleOffset.X;
+    float v = (float)Math.Atan2(z, y) * 180 / (float)Math.PI + mountAngleOffset.Z;
 
     return new Vector2(
       h * inputAngleScale.X,
@@ -91,53 +98,78 @@ public class Fingers
     );
   }
 
-  public void HandleHands(HandData left, HandData right)
-  {
+  public HandData GetActiveHand(HandData left, HandData right) {
     HandData activeHand = new HandData() { isActive = false };
 
-    if (!left.isActive && right.isActive) {
-      activeHand = right;
-    } else if (left.isActive && !right.isActive) {
-      activeHand = left;
-    } else if (left.isActive && right.isActive) {
+    // match to currenthand
+    /*
+    if (currentHand.isActive && engaged) {
+      if (currentHand.isLeft && left.isActive)
+        return left;
+      else if (!currentHand.isLeft && right.isActive)
+        return right;
+      else
+      { 
+        return activeHand;
+      }
+    }
+    */
+
+    if (!left.isActive && right.isActive)
+      return right;
+    else if (left.isActive && !right.isActive)
+      return left;
+    else if (left.isActive && right.isActive)
+    {
       Vector2 l = getScreenPosition(left.pos);
       Vector2 r = getScreenPosition(right.pos);
-      activeHand = (l.LengthSquared() < r.LengthSquared()) ? left : right;
+      return (l.LengthSquared() < r.LengthSquared()) ? left : right;
     }
 
-    if (scrollInitTime != 0) {
-      if (scrollStarted) {
-        HandData scrollHand = scrollIsLeft ? left : right;
-
-        if (!scrollHand.isActive) {
-          EndScroll();
-          return;
-        }
-        while (scrollHand.angle > scrollLastAngle + ScrollDetentDegrees) {
-          Scroll(-ScrollDetentAmount);
-          scrollLastAngle += ScrollDetentDegrees;
-        }
-        while (scrollHand.angle < scrollLastAngle - ScrollDetentDegrees) {
-          Scroll(ScrollDetentAmount);
-          scrollLastAngle -= ScrollDetentDegrees;
-        }
-      } else if (activeHand.isActive) {
-        // Start scrolling, set to initial positions
-        scrollStarted = true;
-        scrollIsLeft = activeHand.isLeft;
-        scrollLastAngle = activeHand.angle;
-      }
-    } else if (activeHand.isActive) {
-      SetCursorPos(getScreenPosition(activeHand.pos));
-    }
+    return activeHand;
   }
 
-  public void ToggleCursorEnabled()
+  public void HandleHands(HandData left, HandData right)
+  {
+    HandData activeHand = GetActiveHand(left, right);
+
+    if (!activeHand.isActive)
+    {
+      if (currentHand.isActive)
+        DisengageHand();
+      return;
+    }
+
+    if (scrollInitTime != 0)
+    {
+      while (activeHand.angle > scrollLastAngle + ScrollDetentDegrees)
+      {
+        Scroll(-ScrollDetentAmount);
+        scrollLastAngle += ScrollDetentDegrees;
+      }
+      while (activeHand.angle < scrollLastAngle - ScrollDetentDegrees)
+      {
+        Scroll(ScrollDetentAmount);
+        scrollLastAngle -= ScrollDetentDegrees;
+      }
+    }
+
+    currentHand = activeHand;
+    SetCursorPos(getScreenPosition(activeHand.pos));
+  }
+
+  private void DisengageHand() {
+    EndScroll();
+    //ButtonsUp();
+  }
+
+  private void ToggleCursorEnabled()
   {
     cursorEnabled = !cursorEnabled;
   }
 
-  public long GetTime() {
+  private long GetTime()
+  {
     return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
   }
 
@@ -147,65 +179,84 @@ public class Fingers
     LoopButton fwdButton = (useRightHand ? LoopButton.FWD : LoopButton.BACK);
     LoopButton backButton = (useRightHand ? LoopButton.BACK : LoopButton.FWD);
 
-    if (b == fwdButton) {
-      if (pressed) {
-        StartScroll();
-      } else {
-        // If we just tapped the button and didn't do anything, then send a single scroll event
+    if (b == fwdButton)
+    {
+      if (pressed)
+      {
+        if (currentHand.isActive)
+          StartScroll();
+        else
+          Scroll(ScrollDetentAmount);
+      }
+      else
+      {
+        // If we just tapped the button and didn't do anything, then send a single scroll event;
         // this is useful for discrete controls
-        if (GetTime() < scrollInitTime + ScrollClickTime && scrolled == false) {
+        if (GetTime() < scrollInitTime + ScrollClickTime && scrolled == false)
+        {
           Scroll(ScrollDetentAmount);
         }
         EndScroll();
       }
     }
 
-    if (pressed && (b == LoopButton.UP || !cursorEnabled)) {
+    if (pressed && (b == LoopButton.UP || !cursorEnabled))
+    {
       ToggleCursorEnabled();
       return;
     }
 
-    if (b == LoopButton.CENTER && pressed) {
+    if (b == LoopButton.CENTER && pressed)
+    {
       Winput.MouseButton(Winput.MouseEventF.LeftDown);
       lastClicked = GetTime();
-    } else if (b == LoopButton.CENTER && !pressed) {
+    }
+    else if (b == LoopButton.CENTER && !pressed)
+    {
       Winput.MouseButton(Winput.MouseEventF.LeftUp);
-    } else if (b == backButton && pressed) {
+    }
+    else if (b == backButton && pressed)
+    {
       Winput.MouseButton(Winput.MouseEventF.RightDown);
       lastClicked = GetTime();
-    } else if (b == backButton && !pressed) {
+    }
+    else if (b == backButton && !pressed)
+    {
       Winput.MouseButton(Winput.MouseEventF.RightUp);
-    } else if (b == LoopButton.DOWN && pressed) {
+    }
+    else if (b == LoopButton.DOWN && pressed)
+    {
       Scroll(-ScrollDetentAmount);
     }
   }
 
-  public void StartScroll()
+  private void StartScroll()
   {
     Console.WriteLine("Starting scroll");
+
     scrollInitTime = GetTime();
-    scrollStarted = false;
     scrolled = false;
-    scrollIsLeft = false;
+    scrollLastAngle = currentHand.angle;
   }
 
-  public void Scroll(int amount)
+  private void Scroll(int amount)
   {
     Console.WriteLine("Scroll {0}", amount);
     scrolled = true;
     Winput.ScrollMouse(amount);
   }
 
-  public void EndScroll()
+  private void EndScroll()
   {
     Console.WriteLine("Ending scroll");
     scrollInitTime = 0;
   }
 
-  public void SetCursorPos(Vector2 pos) {
+  private void SetCursorPos(Vector2 pos)
+  {
     if (!cursorEnabled || GetTime() < lastClicked + clickPause)
       return;
-    
+
     Winput.SetCursorPosition((int)(screenCenter.X + pos.X), (int)(screenCenter.Y + pos.Y));
   }
 
