@@ -56,6 +56,8 @@ public class Fingers
   Vector2 screenCenter;
   Vector2 resetPoint;
 
+  bool leftButtonDown = false;
+  bool rightButtonDown = false;
   long lastClicked = 0;
   bool cursorEnabled = true;
 
@@ -98,12 +100,17 @@ public class Fingers
     );
   }
 
-  public HandData GetActiveHand(HandData left, HandData right) {
+  public bool IsDragging() {
+    return (scrollInitTime != 0 || leftButtonDown || rightButtonDown);
+  }
+
+  public HandData GetActiveHand(HandData left, HandData right)
+  {
     HandData activeHand = new HandData() { isActive = false };
 
-    // match to currenthand
-    /*
-    if (currentHand.isActive && engaged) {
+    // Match to existing hand if we're in some kind of drag event (so we don't snap to another
+    // hand partway through).
+    if (IsDragging() && currentHand.isActive) {
       if (currentHand.isLeft && left.isActive)
         return left;
       else if (!currentHand.isLeft && right.isActive)
@@ -113,7 +120,6 @@ public class Fingers
         return activeHand;
       }
     }
-    */
 
     if (!left.isActive && right.isActive)
       return right;
@@ -133,10 +139,9 @@ public class Fingers
   {
     HandData activeHand = GetActiveHand(left, right);
 
-    if (!activeHand.isActive)
+    if (!activeHand.isActive && currentHand.isActive)
     {
-      if (currentHand.isActive)
-        DisengageHand();
+      DisengageHand();
       return;
     }
 
@@ -158,9 +163,13 @@ public class Fingers
     SetCursorPos(getScreenPosition(activeHand.pos));
   }
 
-  private void DisengageHand() {
-    EndScroll();
-    //ButtonsUp();
+  // Current hand left stopped being active
+  // TODO: disengage left/right drag? might have unexpected side effects if the user didn't care
+  // about the drag
+  private void DisengageHand()
+  {
+    if (scrollInitTime != 0)
+      EndScroll();
   }
 
   private void ToggleCursorEnabled()
@@ -209,20 +218,24 @@ public class Fingers
     if (b == LoopButton.CENTER && pressed)
     {
       Winput.MouseButton(Winput.MouseEventF.LeftDown);
+      leftButtonDown = true;
       lastClicked = GetTime();
     }
     else if (b == LoopButton.CENTER && !pressed)
     {
       Winput.MouseButton(Winput.MouseEventF.LeftUp);
+      leftButtonDown = false;
     }
     else if (b == backButton && pressed)
     {
       Winput.MouseButton(Winput.MouseEventF.RightDown);
+      rightButtonDown = true;
       lastClicked = GetTime();
     }
     else if (b == backButton && !pressed)
     {
       Winput.MouseButton(Winput.MouseEventF.RightUp);
+      rightButtonDown = false;
     }
     else if (b == LoopButton.DOWN && pressed)
     {
