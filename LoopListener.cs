@@ -141,18 +141,8 @@ class LoopListener
     }
   }
 
-  public LoopListener(Fingers parent)
-  {
-    fingers = parent;
-
-    foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
-    {
-      state[button] = false;
-    }
-
-    // https://docs.microsoft.com/en-us/windows/uwp/devices-sensors/gatt-client
-
-    var watcher = new BluetoothLEAdvertisementWatcher();
+  public async void Watch() {
+    BluetoothLEAdvertisementWatcher watcher = new BluetoothLEAdvertisementWatcher();
     watcher.ScanningMode = BluetoothLEScanningMode.Active;
 
     // Only activate the watcher when we're recieving values >= -80
@@ -168,7 +158,28 @@ class LoopListener
     watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
     watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(2000);
 
-    // Starting watching for advertisements
-    watcher.Start();
+    while(true) {
+      // Starting watching for advertisements
+      watcher.Start();
+      await Task.Delay(10000);
+      watcher.Stop();
+
+      // If we've found a loop, stop this tomfoolery
+      if (loops.Count > 0)
+        return;
+    }
+  }
+
+  public LoopListener(Fingers parent)
+  {
+    fingers = parent;
+
+    // Initialize loop state
+    foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
+    {
+      state[button] = false;
+    }
+
+    Watch();
   }
 }
