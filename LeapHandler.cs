@@ -81,17 +81,22 @@ class LeapHandler
 
   public void OnDeviceFailure(object sender, DeviceFailureEventArgs args)
   {
-    Console.WriteLine("Device Error");
+    Console.WriteLine("Leap Error:");
     Console.WriteLine("  PNP ID:" + args.DeviceSerialNumber);
     Console.WriteLine("  Failure message:" + args.ErrorMessage);
   }
 
   public void OnLogMessage(object sender, LogEventArgs args)
   {
+    if (args.message.Equals("LeapC PollConnection call was  eLeapRS_Timeout")) {
+      Console.WriteLine("Leap Error: Could not connect");
+      return;
+    }
+
     switch (args.severity)
     {
       case Leap.MessageSeverity.MESSAGE_CRITICAL:
-        Console.WriteLine("Leap Message: [Critical]");
+        Console.WriteLine("Leap Message: [Critical]: {0}", args.message);
         break;
       case Leap.MessageSeverity.MESSAGE_WARNING:
         Console.WriteLine("Leap Message: [Warning]");
