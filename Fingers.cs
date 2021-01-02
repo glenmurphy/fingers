@@ -145,6 +145,19 @@ public class Fingers
       return;
     }
 
+    /*
+    if (activeHand.isPinching && !currentHand.isPinching)
+    {
+      Winput.MouseButton(Winput.MouseEventF.LeftDown);
+      leftButtonDown = true;
+    }
+    else if (!activeHand.isPinching && currentHand.isPinching)
+    {
+      Winput.MouseButton(Winput.MouseEventF.LeftUp);
+      leftButtonDown = false;
+    }
+    */
+
     if (scrollInitTime != 0)
     {
       while (activeHand.angle > scrollLastAngle + ScrollDetentDegrees)
