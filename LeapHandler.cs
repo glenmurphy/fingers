@@ -49,23 +49,18 @@ class LeapHandler
 
     foreach (Hand hand in frame.Hands)
     {
-      foreach (Finger finger in hand.Fingers)
-      {
-        if (finger.Type != Finger.FingerType.TYPE_INDEX) continue;
+      ref HandData data = ref ((hand.IsLeft) ? ref leftHand : ref rightHand);
 
-        Bone mcp = finger.Bone(Bone.BoneType.TYPE_METACARPAL);
+      Bone mcp = hand.Fingers.Find(x => x.Type == Finger.FingerType.TYPE_INDEX)
+                             .Bone(Bone.BoneType.TYPE_METACARPAL);
 
-        ref HandData data = ref ((hand.IsLeft) ? ref leftHand : ref rightHand);
-        
-        // Convert to HandData coordinate system
-        
-        data.pos = new Vector3(-mcp.NextJoint[0], -mcp.NextJoint[2], mcp.NextJoint[1]);
-        data.isActive = true;
-        // Actual rotation is not reliable; use a combination of X/Y pos so users can drag
-        // horizontally or vertically; this means up/right is "increase", down/left is "decrease"
-        data.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
-        //leftHand.isPinching = (hand.PinchStrength == 1); unreliable
-      }
+      // Convert to HandData coordinate system
+      data.pos = new Vector3(-mcp.NextJoint[0], -mcp.NextJoint[2], mcp.NextJoint[1]);
+      data.isActive = true;
+
+      // Actual rotation is not reliable; use a combination of X/Y pos so users can drag
+      // horizontally or vertically; this means up/right is "increase", down/left is "decrease"
+      data.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
     }
 
     if (frame.Hands.Count != 0)
