@@ -12,14 +12,17 @@ public class Fingers
   // accidental scrolling/dragging in other places (e.g. text editors)
   private static int clickPause = 0;
 
-  // Angle of the mount in degrees - x/y/z are the positional axis the angle impacts; these have the
-  // effect of pushing the cursor in the direction of the offset, so you can use this if you want
-  // your cursor pushed more in a specific direction
-  private static Vector3 mountAngleOffset = new Vector3(0, 0, 10);
+  // Angle of the leap relative to the eye forward vector in degrees; left handed rotation
+  // X+ : leap is rotated down
+  // Y+ : leap rotated right
+  // Z+ : leap is rotated counterclockwise
+  private static Vector3 mountAngleOffset = new Vector3(10, 0, 20);
 
-  // Position of the eye relative to the leap (in mm, using the Leap coordinate system), in the
-  // leap's rotation system (so 'down' is parallel to its front screen)
-  private static Vector3 eyePositionOffset = new Vector3(0, -110, -73);
+  // Position of the leap relative to the eye center in mm
+  // X+ : leap is to the right of the eye
+  // Y+ : leap is above the eye
+  // Z+ : leap is forward of the eye
+  private static Vector3 mountPositionOffset = new Vector3(0, 73, 110);
 
   // DCS translates mouse movement over its window into a 2D plane in the game world - you can see
   // this window when you bring up the ESC menu where it is fixed in place, while it follows the
@@ -55,6 +58,7 @@ public class Fingers
 
   Vector2 screenCenter;
   Vector2 resetPoint;
+  Vector3 mountAngleOffsetRadians;
 
   bool leftButtonDown = false;
   bool rightButtonDown = false;
@@ -63,13 +67,17 @@ public class Fingers
 
   public Fingers()
   {
+    // Configuration variables
     screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
 
     resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
 
-    DCS.Monitor(this);
+    float deg2rad = ((float)Math.PI / 180);
+    mountAngleOffsetRadians = new Vector3(mountAngleOffset.X * deg2rad, 
+                                          mountAngleOffset.Y * deg2rad, 
+                                          mountAngleOffset.Z * deg2rad);
 
-    Winput.SetCursorPosition((int)resetPoint.X, (int)resetPoint.Y);
+    DCS.Monitor(this);
 
     LeapHandler leap = new LeapHandler(this);
     LoopListener loop = new LoopListener(this);
@@ -85,14 +93,39 @@ public class Fingers
                                   dim.Z / inputScreenHeightDegrees);
   }
 
-  public Vector2 getScreenPosition(Leap.Vector pos)
+  public Vector3 RotatePosition(Vector3 pos, Vector3 rot)
   {
-    float x = -pos[0] - eyePositionOffset.X; // horizontal
-    float y = pos[1] - eyePositionOffset.Y; // depth
-    float z = pos[2] + eyePositionOffset.Z; // upness
+    float x = pos.X;
+    float y = pos.Y;
+    float z = pos.Z;
 
-    float h = (float)Math.Atan2(x, y) * 180 / (float)Math.PI + mountAngleOffset.X;
-    float v = (float)Math.Atan2(z, y) * 180 / (float)Math.PI + mountAngleOffset.Z;
+    Vector3 result = new Vector3();
+
+    // rotateZ
+    result.X = x * (float)Math.Cos(rot.Z) - y * (float)Math.Sin(rot.Z);
+    result.Y = y * (float)Math.Cos(rot.Z) + x * (float)Math.Sin(rot.Z);
+
+    // rotateX
+    result.Y = y * (float)Math.Cos(rot.X) - z * (float)Math.Sin(rot.X);
+    result.Z = z * (float)Math.Cos(rot.X) + y * (float)Math.Sin(rot.X);
+
+    // rotateY
+    result.X = x * (float)Math.Cos(rot.Y) + z * (float)Math.Sin(rot.Y);
+    result.Z = z * (float)Math.Cos(rot.Y) - x * (float)Math.Sin(rot.Y);
+
+    return result;
+  }
+
+  public Vector2 getScreenPosition(Vector3 pos)
+  {
+    Vector3 translated = RotatePosition(pos, mountAngleOffsetRadians);
+
+    translated.X = translated.X + mountPositionOffset.X; // horizontal
+    translated.Y = translated.Y + mountPositionOffset.Y; // upness
+    translated.Z = translated.Z + mountPositionOffset.Z; // depth
+
+    float h =  (float)Math.Atan2(translated.X, translated.Z) * 180 / (float)Math.PI;
+    float v = -(float)Math.Atan2(translated.Y, translated.Z) * 180 / (float)Math.PI;
 
     return new Vector2(
       h * inputAngleScale.X,

@@ -1,4 +1,5 @@
 using System;
+using System.Numerics; // Vector
 using Leap;
 
 class LeapHandler
@@ -54,29 +55,21 @@ class LeapHandler
 
         Bone mcp = finger.Bone(Bone.BoneType.TYPE_METACARPAL);
 
-        if (hand.IsLeft)
-        {
-          leftHand.pos = mcp.NextJoint;
-          leftHand.isActive = true;
-          // Actual rotation is not reliable; use a combination of X/Y pos so users can drag
-          // either horizontally or vertically
-          leftHand.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
-          //leftHand.isPinching = (hand.PinchStrength == 1); unreliable
-        }
-        else
-        {
-          rightHand.pos = mcp.NextJoint;
-          rightHand.isActive = true;
-          rightHand.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
-          //rightHand.isPinching = (hand.PinchStrength == 1); unreliable
-        }
+        ref HandData data = ref ((hand.IsLeft) ? ref leftHand : ref rightHand);
+        
+        // Convert to HandData coordinate system
+        
+        data.pos = new Vector3(-mcp.NextJoint[0], -mcp.NextJoint[2], mcp.NextJoint[1]);
+        data.isActive = true;
+        // Actual rotation is not reliable; use a combination of X/Y pos so users can drag
+        // horizontally or vertically; this means up/right is "increase", down/left is "decrease"
+        data.angle = mcp.NextJoint[2] + mcp.NextJoint[0];
+        //leftHand.isPinching = (hand.PinchStrength == 1); unreliable
       }
     }
 
     if (frame.Hands.Count != 0)
-    {
       fingers.HandleHands(leftHand, rightHand);
-    }
   }
 
   public void OnDeviceFailure(object sender, DeviceFailureEventArgs args)
@@ -88,7 +81,8 @@ class LeapHandler
 
   public void OnLogMessage(object sender, LogEventArgs args)
   {
-    if (args.message.Equals("LeapC PollConnection call was  eLeapRS_Timeout")) {
+    if (args.message.Equals("LeapC PollConnection call was  eLeapRS_Timeout"))
+    {
       Console.WriteLine("Leap Error: Could not connect");
       return;
     }

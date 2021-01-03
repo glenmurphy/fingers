@@ -1,8 +1,16 @@
+using System.Numerics; // Vector
+
 public struct HandData
 {
   public bool isLeft;
   public bool isActive;
   public bool isPinching;
-  public Leap.Vector pos; // world position
+
+  // position relative to leap
+  // X+ is right
+  // Y+ is up
+  // Z+ is distance
+  public Vector3 pos;
+
   public float angle;
 }
