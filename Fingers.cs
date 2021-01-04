@@ -12,11 +12,13 @@ public class Fingers
   // accidental scrolling/dragging in other places (e.g. text editors)
   private static int clickPause = 0;
 
-  // Angle of the leap relative to the eye forward vector in degrees; left handed rotation
+  // Angle of the leap relative to the eye forward vector in degrees; left handed rotation. You can
+  // also use this to offset the cursor position (increasing a value will push the cursor in that
+  // direction)
   // X+ : leap is rotated down
   // Y+ : leap rotated right
   // Z+ : leap is rotated counterclockwise
-  private static Vector3 mountAngleOffset = new Vector3(20, 0, 0);
+  private static Vector3 mountAngleOffset = new Vector3(10, 0, 0);
 
   // Position of the leap relative to the eye center in mm
   // X+ : leap is to the right of the eye
@@ -43,6 +45,10 @@ public class Fingers
   // The above is translated using this variable, which is set in HandleDCSWindow; here are some
   // reasonable default values
   Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
+
+  // When choosing between two hands, how many degrees we should bias towards sticking with the
+  // currently tracked hand.
+  private static float overlap = 10;
 
   // The last hand we tracked
   HandData currentHand;
@@ -134,7 +140,8 @@ public class Fingers
     return result;
   }
 
-  public Vector2 getScreenPosition(Vector3 pos)
+  // Get the angle of the leap-position relative to the eye in degrees
+  public Vector2 GetRelativeAngle(ref Vector3 pos)
   {
     Vector3 translated = RotatePosition(pos, mountAngleOffsetRadians);
 
@@ -142,12 +149,19 @@ public class Fingers
     translated.Y = translated.Y + mountPositionOffset.Y; // upness
     translated.Z = translated.Z + mountPositionOffset.Z; // depth
 
-    float h =  (float)Math.Atan2(translated.X, translated.Z) * 180 / (float)Math.PI;
-    float v = -(float)Math.Atan2(translated.Y, translated.Z) * 180 / (float)Math.PI;
+    Vector2 angle;
+    angle.X =  (float)Math.Atan2(translated.X, translated.Z) * 180 / (float)Math.PI;
+    angle.Y = -(float)Math.Atan2(translated.Y, translated.Z) * 180 / (float)Math.PI;
+    return angle;
+  }
+
+  public Vector2 GetScreenPosition(Vector3 pos)
+  {
+    Vector2 angle = GetRelativeAngle(ref pos);
 
     return new Vector2(
-      h * inputAngleScale.X,
-      v * inputAngleScale.Y
+      angle.X * inputAngleScale.X,
+      angle.Y * inputAngleScale.Y
     );
   }
 
@@ -176,9 +190,17 @@ public class Fingers
       return left;
     else if (left.isActive && right.isActive)
     {
-      Vector2 l = getScreenPosition(left.pos);
-      Vector2 r = getScreenPosition(right.pos);
-      return (l.LengthSquared() < r.LengthSquared()) ? left : right;
+      float l = GetRelativeAngle(ref left.pos).Length();
+      float r = GetRelativeAngle(ref right.pos).Length();
+
+      // If we're currently tracking a hand, bias away from the other hand by a certain amount of
+      // angle (defined in overlap)
+      if (currentHand.isActive && currentHand.isLeft)
+        r += overlap;
+      else if (currentHand.isActive && !currentHand.isLeft)
+        l += overlap;
+      Console.WriteLine("{0}, {1}: {2}", l, r, currentHand.isActive);
+      return (l < r) ? left : right;
     }
 
     return activeHand;
@@ -222,7 +244,7 @@ public class Fingers
     }
 
     currentHand = activeHand;
-    SetCursorPos(getScreenPosition(activeHand.pos));
+    SetCursorPos(GetScreenPosition(activeHand.pos));
   }
 
   // Current hand left stopped being active
