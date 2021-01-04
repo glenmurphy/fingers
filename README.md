@@ -5,23 +5,28 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 
 ### Requirements
 
-* Leap Motion
+* Leap Motion tracker
 * A Loop from North (came with the North Focals, which you can't buy anymore)
 * A Windows PC with Bluetooth
 
 ### Build instructions
 
-- install the Leap SDK (I used 3.2)
-- install [.NET SDK](https://dotnet.microsoft.com/download)
+- Install the Leap 4.1 SDK
+- Install [.NET SDK](https://dotnet.microsoft.com/download)
 - `git clone https://github.com/glenmurphy/fingers.git`
 - `dotnet add package System.Runtime.WindowsRuntime --version 4.7.0`
-- make sure LeapSDK and Windows.winmd paths in fingers.csproj point to the right place
-- configure mountAngleOffset and mountPositionOffset in fingers.cs
-- cross your actual fingers because build instructions usually forget to mention all kinds of stuff the author didn't realize was necessary
+- Make sure the LeapSDK and Windows.winmd paths in fingers.csproj point to the right place
+- Cross your actual fingers because build instructions usually forget to mention all kinds of stuff the author didn't realize was necessary
 - `dotnet run`
+
+### Setup / Config
+- Make sure your Leap understands which way is up - look in the vizualizer and flip it in the control panel if necessary; the auto orientation doesn't always work
+- Configure mountAngleOffset and mountPositionOffset in fingers.cs to reflect the mounting position of your headset
+- 
 
 ### Other
 
 * [OnShape Model for the Pimax/Leap mount](https://cad.onshape.com/documents/ae5a6cb30a9eb6d1e482df71/w/023af4907bc823d27392def4/e/ad8553e8c3b3b2fdd51e0683)
 * You're almost certainly better off buying [PointCTRL](http://pointctrl.com/) - I made this because I'm still waiting for one :)
 * This was previously a Deno/Chrome app, but [swapped to C#](https://github.com/glenmurphy/fingers/commit/4073f3e6cb88f640333d66b5c22c00bcc68cfe3f)
+* Ultraleap dropping official C# support but making it unofficially available is why the LeapCS directory exists
