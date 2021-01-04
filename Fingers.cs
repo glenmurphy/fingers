@@ -42,16 +42,9 @@ public class Fingers
   private static float inputScreenWidthDegrees = 100f;
   private static float inputScreenHeightDegrees = inputScreenWidthDegrees / inputScreenRatio;
 
-  // The above is translated using this variable, which is set in HandleDCSWindow; here are some
-  // reasonable default values
-  Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
-
   // When choosing between two hands, how many degrees we should bias towards sticking with the
   // currently tracked hand.
-  private static float overlap = 10;
-
-  // The last hand we tracked
-  HandData currentHand;
+  private static float overlap = 5;
 
   // Scroll tracking
   // DCS uses both individual events (for discrete things like channel selectors) as well as amounts
@@ -60,6 +53,14 @@ public class Fingers
   private static float ScrollDetentDegrees = 15;
   private static int ScrollDetentAmount = 750;
   private static int ScrollClickTime = 200;
+
+  // Internal variables
+  // The inputScreenRatio setup is translated using this variable, which is set in 
+  // HandleDCSWindow; here are some reasonable default values
+  Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
+  
+  // The last hand we tracked
+  HandData currentHand;
 
   long scrollInitTime = 0;
   Boolean scrolled = false;
@@ -199,7 +200,6 @@ public class Fingers
         r += overlap;
       else if (currentHand.isActive && !currentHand.isLeft)
         l += overlap;
-      Console.WriteLine("{0}, {1}: {2}", l, r, currentHand.isActive);
       return (l < r) ? left : right;
     }
 
