@@ -16,13 +16,16 @@ public class Fingers
   // X+ : leap is rotated down
   // Y+ : leap rotated right
   // Z+ : leap is rotated counterclockwise
-  private static Vector3 mountAngleOffset = new Vector3(10, 0, 20);
+  private static Vector3 mountAngleOffset = new Vector3(20, 0, 0);
 
   // Position of the leap relative to the eye center in mm
   // X+ : leap is to the right of the eye
   // Y+ : leap is above the eye
   // Z+ : leap is forward of the eye
-  private static Vector3 mountPositionOffset = new Vector3(0, 73, 110);
+  //
+  // Common values: (0, 62, 106) - pimax top-mounted leap
+  //                (0, -45, 68) - pimax hand tracker
+  private static Vector3 mountPositionOffset = new Vector3(0, -45, 68);
 
   // DCS translates mouse movement over its window into a 2D plane in the game world - you can see
   // this window when you bring up the ESC menu where it is fixed in place, while it follows the
@@ -99,19 +102,34 @@ public class Fingers
     float y = pos.Y;
     float z = pos.Z;
 
-    Vector3 result = new Vector3();
+    Vector3 result = new Vector3(pos.X, pos.Y, pos.Z);
 
     // rotateZ
-    result.X = x * (float)Math.Cos(rot.Z) - y * (float)Math.Sin(rot.Z);
-    result.Y = y * (float)Math.Cos(rot.Z) + x * (float)Math.Sin(rot.Z);
+    if (rot.Z != 0)
+    {
+      float cosZ = (float)Math.Cos(rot.Z);
+      float sinZ = (float)Math.Sin(rot.Z);
+      result.X = x * cosZ - y * sinZ;
+      result.Y = y * cosZ + x * sinZ;
+    }
 
     // rotateX
-    result.Y = y * (float)Math.Cos(rot.X) - z * (float)Math.Sin(rot.X);
-    result.Z = z * (float)Math.Cos(rot.X) + y * (float)Math.Sin(rot.X);
+    if (rot.X != 0)
+    {
+      float cosX = (float)Math.Cos(rot.X);
+      float sinX = (float)Math.Sin(rot.X);
+      result.Y = y * cosX - z * sinX;
+      result.Z = z * cosX + y * sinX;
+    }
 
     // rotateY
-    result.X = x * (float)Math.Cos(rot.Y) + z * (float)Math.Sin(rot.Y);
-    result.Z = z * (float)Math.Cos(rot.Y) - x * (float)Math.Sin(rot.Y);
+    if (rot.Y != 0)
+    {
+      float cosY = (float)Math.Cos(rot.Y);
+      float sinY = (float)Math.Sin(rot.Y);
+      result.Z = z * cosY - x * sinY;
+      result.X = x * cosY + z * sinY;
+    }
 
     return result;
   }
@@ -149,9 +167,7 @@ public class Fingers
       else if (!currentHand.isLeft && right.isActive)
         return right;
       else
-      { 
         return activeHand;
-      }
     }
 
     if (!left.isActive && right.isActive)

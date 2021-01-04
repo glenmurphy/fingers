@@ -30,9 +30,13 @@ class LeapHandler
     Console.WriteLine("Leap Connected");
 
     // Need to do this after we've connected
+    controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_OPTIMIZE_HMD);
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_ALLOW_PAUSE_RESUME);
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_BACKGROUND_FRAMES);
-    controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_OPTIMIZE_HMD);
+
+    controller.Config.Set<bool>("tracking_processing_auto_flip", true, delegate(bool success){
+      if(success) Console.WriteLine("Setting changed.");
+    });
   }
 
   public void OnDisconnect(object sender, DeviceEventArgs args)
@@ -55,6 +59,9 @@ class LeapHandler
                              .Bone(Bone.BoneType.TYPE_METACARPAL);
 
       // Convert to HandData coordinate system
+      // new Vector3(-hand.StabilizedPalmPosition[0], 
+      //             -hand.StabilizedPalmPosition[2],
+      //             hand.StabilizedPalmPosition[1]);
       data.pos = new Vector3(-mcp.NextJoint[0], -mcp.NextJoint[2], mcp.NextJoint[1]);
       data.isActive = true;
 
@@ -88,13 +95,13 @@ class LeapHandler
         Console.WriteLine("Leap Message: [Critical]: {0}", args.message);
         break;
       case Leap.MessageSeverity.MESSAGE_WARNING:
-        Console.WriteLine("Leap Message: [Warning]");
+        Console.WriteLine("Leap Message: [Warning]: {0}", args.message);
         break;
       case Leap.MessageSeverity.MESSAGE_INFORMATION:
-        Console.WriteLine("Leap Message: [Info]");
+        Console.WriteLine("Leap Message: [Info]: {0}", args.message);
         break;
       case Leap.MessageSeverity.MESSAGE_UNKNOWN:
-        Console.WriteLine("Leap Message: [Unknown]");
+        Console.WriteLine("Leap Message: [Unknown]: {0}", args.message);
         break;
     }
   }

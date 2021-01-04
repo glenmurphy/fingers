@@ -1,6 +1,6 @@
 # Fingers
 
-This is a quick hack to let DCS VR use the Leap Motion and a North Loop (the
+This lets Digital Combat Simulator (DCS) VR use the Leap Motion and a North Loop (the
 ring thing that came with the North Focals) to press buttons. See photos and video on the [Twitter thread](https://twitter.com/gmurphy/status/1341829602138681345).
 
 ### Requirements
@@ -11,11 +11,14 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 
 ### Build instructions
 
-- install .NET5 https://dotnet.microsoft.com/download
-- dotnet add package System.Runtime.WindowsRuntime --version 4.7.0
-- make sure LeapSDK and Windows paths in .csproj point to the right place
-- dotnet build
-- dotnet run
+- install the Leap SDK (I used 3.2)
+- install [.NET SDK](https://dotnet.microsoft.com/download)
+- `git clone https://github.com/glenmurphy/fingers.git`
+- `dotnet add package System.Runtime.WindowsRuntime --version 4.7.0`
+- make sure LeapSDK and Windows.winmd paths in fingers.csproj point to the right place
+- configure mountAngleOffset and mountPositionOffset in fingers.cs
+- cross your actual fingers because build instructions usually forget to mention all kinds of stuff the author didn't realize was necessary
+- `dotnet run`
 
 ### Other
 
