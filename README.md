@@ -22,7 +22,6 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 ### Setup / Config
 - Make sure your Leap understands which way is up - look in the vizualizer and flip it in the control panel if necessary; the auto orientation doesn't always work
 - Configure mountAngleOffset and mountPositionOffset in fingers.cs to reflect the mounting position of your headset
-- 
 
 ### Other
 
