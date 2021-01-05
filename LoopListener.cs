@@ -7,7 +7,6 @@ using Windows.Storage.Streams; // DataReader
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.Advertisement;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using Windows.Devices.Enumeration;
 
 public enum LoopButton
 {

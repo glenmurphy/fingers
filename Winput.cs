@@ -15,7 +15,6 @@ public class Winput
     RightUp = 0x0010,
     MiddleDown = 0x0020,
     MiddleUp = 0x0040,
-    VirtualDesk = 0x4000,
     Wheel = 0x0800,
     XDown = 0x0080,
     XUp = 0x0100

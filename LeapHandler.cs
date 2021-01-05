@@ -34,7 +34,7 @@ class LeapHandler
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_BACKGROUND_FRAMES);
 
     controller.Config.Set<bool>("tracking_processing_auto_flip", true, delegate(bool success){
-      if(success) Console.WriteLine("Setting changed.");
+      if(success) Console.WriteLine("Auto flip enabled");
     });
   }
 
@@ -58,9 +58,7 @@ class LeapHandler
                              .Bone(Bone.BoneType.TYPE_METACARPAL);
 
       // Convert to HandData coordinate system
-      // new Vector3(-hand.StabilizedPalmPosition[0], 
-      //             -hand.StabilizedPalmPosition[2],
-      //             hand.StabilizedPalmPosition[1]);
+      // Can also consider using StabilizedPalmPosition
       data.pos = new Vector3(-mcp.NextJoint[0], -mcp.NextJoint[2], mcp.NextJoint[1]);
       data.isActive = true;
 

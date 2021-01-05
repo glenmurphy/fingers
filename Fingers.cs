@@ -55,7 +55,7 @@ public class Fingers
   private static int ScrollClickTime = 200;
 
   // Internal variables
-  // The inputScreenRatio setup is translated using this variable, which is set in 
+  // The inputScreenRatio setup is translated using inputAngleScale, which is set in 
   // HandleDCSWindow; here are some reasonable default values
   Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
   
@@ -111,7 +111,6 @@ public class Fingers
 
     Vector3 result = new Vector3(pos.X, pos.Y, pos.Z);
 
-    // rotateZ
     if (rot.Z != 0)
     {
       float cosZ = (float)Math.Cos(rot.Z);
@@ -120,7 +119,6 @@ public class Fingers
       result.Y = y * cosZ + x * sinZ;
     }
 
-    // rotateX
     if (rot.X != 0)
     {
       float cosX = (float)Math.Cos(rot.X);
@@ -129,7 +127,6 @@ public class Fingers
       result.Z = z * cosX + y * sinX;
     }
 
-    // rotateY
     if (rot.Y != 0)
     {
       float cosY = (float)Math.Cos(rot.Y);
@@ -141,7 +138,7 @@ public class Fingers
     return result;
   }
 
-  // Get the angle of the leap-position relative to the eye in degrees
+  // Get the angle of the position (in HandData position) relative to the eye in degrees
   public Vector2 GetRelativeAngle(ref Vector3 pos)
   {
     Vector3 translated = RotatePosition(pos, mountAngleOffsetRadians);
@@ -216,19 +213,6 @@ public class Fingers
       return;
     }
 
-    /*
-    if (activeHand.isPinching && !currentHand.isPinching)
-    {
-      Winput.MouseButton(Winput.MouseEventF.LeftDown);
-      leftButtonDown = true;
-    }
-    else if (!activeHand.isPinching && currentHand.isPinching)
-    {
-      Winput.MouseButton(Winput.MouseEventF.LeftUp);
-      leftButtonDown = false;
-    }
-    */
-
     if (scrollInitTime != 0)
     {
       while (activeHand.angle > scrollLastAngle + ScrollDetentDegrees)
@@ -247,9 +231,8 @@ public class Fingers
     SetCursorPos(GetScreenPosition(activeHand.pos));
   }
 
-  // Current hand left stopped being active
-  // TODO: disengage left/right drag? might have unexpected side effects if the user didn't care
-  // about the drag
+  // Called when the current hand stops being active; currently we leave left/right mouse buttons
+  // down because a user might have them down for other reasons (e.g. holding temporary switches)
   private void DisengageHand()
   {
     if (scrollInitTime != 0)
@@ -268,7 +251,7 @@ public class Fingers
 
   public void HandleLoopEvent(LoopButton b, Boolean pressed)
   {
-    Console.WriteLine("{0} {1}", b, pressed ? "pressed" : "up");
+    Console.WriteLine("{0} {1}", b, pressed ? "pressed" : "released");
     LoopButton fwdButton = (useRightHand ? LoopButton.FWD : LoopButton.BACK);
     LoopButton backButton = (useRightHand ? LoopButton.BACK : LoopButton.FWD);
 
