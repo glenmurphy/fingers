@@ -31,7 +31,6 @@ class LeapHandler
 
     // Need to do this after we've connected
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_OPTIMIZE_HMD);
-    controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_ALLOW_PAUSE_RESUME);
     controller.SetPolicy(Leap.Controller.PolicyFlag.POLICY_BACKGROUND_FRAMES);
 
     controller.Config.Set<bool>("tracking_processing_auto_flip", true, delegate(bool success){

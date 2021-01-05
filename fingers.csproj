@@ -4,7 +4,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net4.8</TargetFramework>
     <RootNamespace>fingers</RootNamespace>
-    <TargetPlatformVersion>10.0</TargetPlatformVersion>
     
     <!-- you will definitely need to change this -->
     <LeapSDKDir>C:\bin\LeapSDK4.0</LeapSDKDir>
