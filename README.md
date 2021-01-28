@@ -11,7 +11,7 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 
 ### Build instructions
 
-- Install the Leap 4.1 SDK
+- Install the Leap 4.1 SDK (5.0 beta has also been tested and appears to work well)
 - Install [.NET SDK](https://dotnet.microsoft.com/download)
 - `git clone https://github.com/glenmurphy/fingers.git`
 - `dotnet add package System.Runtime.WindowsRuntime --version 4.7.0`
@@ -20,7 +20,7 @@ ring thing that came with the North Focals) to press buttons. See photos and vid
 - `dotnet run`
 
 ### Setup / Config
-- Make sure your Leap understands which way is up - look in the vizualizer and flip it in the control panel if necessary; the auto orientation doesn't always work
+- Make sure your Leap understands which way is up - look in the vizualizer and flip it in the control panel if necessary; the auto orientation doesn't always work. This gets reset every time you update Leap, and is the most likely cause of problems.
 - Configure mountAngleOffset and mountPositionOffset in fingers.cs to reflect the mounting position of your headset
 
 ### Other
