@@ -6,7 +6,7 @@ public class Fingers
 {
   // Used to figure out what direction FWD is on the Loop; will deprecate when we support multiple
   // loops (when I get multiple loops)
-  private static bool useRightHand = false;
+  private static bool useRightHand = true;
 
   // how long to pause cursor movement after mouseDown events; not useful in DCS, but helps prevent
   // accidental scrolling/dragging in other places (e.g. text editors)
@@ -188,8 +188,9 @@ public class Fingers
       return left;
     else if (left.isActive && right.isActive)
     {
-      float l = GetRelativeAngle(ref left.pos).Length();
-      float r = GetRelativeAngle(ref right.pos).Length();
+      // Figure out which hand to focus on by distance away from the middle
+      float l = Math.Abs(GetRelativeAngle(ref left.pos).X);
+      float r = Math.Abs(GetRelativeAngle(ref right.pos).X);
 
       // If we're currently tracking a hand, bias away from the other hand by a certain amount of
       // angle (defined in overlap)

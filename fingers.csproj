@@ -5,8 +5,8 @@
     <TargetFramework>net4.8</TargetFramework>
     <RootNamespace>fingers</RootNamespace>
     
-    <!-- you will definitely need to change this -->
-    <LeapSDKDir>C:\bin\LeapSDK5.0</LeapSDKDir>
+    <!-- you will *definitely* need to change this -->
+    <LeapSDKDir>C:\bin\LeapSDK4.0</LeapSDKDir>
   </PropertyGroup>
 
   <ItemGroup>
