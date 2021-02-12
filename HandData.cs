@@ -5,7 +5,7 @@ public struct HandData
   public bool isLeft;
   public bool isActive;
 
-  // position relative to leap
+  // position relative to eye
   // X+ is right
   // Y+ is up
   // Z+ is distance

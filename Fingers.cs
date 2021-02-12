@@ -12,23 +12,6 @@ public class Fingers
   // accidental scrolling/dragging in other places (e.g. text editors)
   private static int clickPause = 0;
 
-  // Angle of the leap relative to the eye forward vector in degrees; left handed rotation. You can
-  // also use this to offset the cursor position (increasing a value will push the cursor in that
-  // direction)
-  // X+ : leap is rotated down
-  // Y+ : leap rotated right
-  // Z+ : leap is rotated counterclockwise
-  private static Vector3 mountAngleOffset = new Vector3(10, 0, 0);
-
-  // Position of the leap relative to the eye center in mm
-  // X+ : leap is to the right of the eye
-  // Y+ : leap is above the eye
-  // Z+ : leap is forward of the eye
-  //
-  // Common values: (0, 62, 106) - pimax top-mounted leap
-  //                (0, -45, 68) - pimax hand tracker
-  private static Vector3 mountPositionOffset = new Vector3(0, -45, 68);
-
   // DCS translates mouse movement over its window into a 2D plane in the game world - you can see
   // this window when you bring up the ESC menu where it is fixed in place, while it follows the
   // head position at other times (this is why you get two different mouse behaviors). A mouse
@@ -68,7 +51,6 @@ public class Fingers
 
   Vector2 screenCenter;
   Vector2 resetPoint;
-  Vector3 mountAngleOffsetRadians;
 
   bool leftButtonDown = false;
   bool rightButtonDown = false;
@@ -81,11 +63,6 @@ public class Fingers
     screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
 
     resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
-
-    float deg2rad = ((float)Math.PI / 180);
-    mountAngleOffsetRadians = new Vector3(mountAngleOffset.X * deg2rad, 
-                                          mountAngleOffset.Y * deg2rad, 
-                                          mountAngleOffset.Z * deg2rad);
 
     DCS.Monitor(this);
 
@@ -103,53 +80,12 @@ public class Fingers
                                   dim.Z / inputScreenHeightDegrees);
   }
 
-  public Vector3 RotatePosition(Vector3 pos, Vector3 rot)
-  {
-    float x = pos.X;
-    float y = pos.Y;
-    float z = pos.Z;
-
-    Vector3 result = new Vector3(pos.X, pos.Y, pos.Z);
-
-    if (rot.Z != 0)
-    {
-      float cosZ = (float)Math.Cos(rot.Z);
-      float sinZ = (float)Math.Sin(rot.Z);
-      result.X = x * cosZ - y * sinZ;
-      result.Y = y * cosZ + x * sinZ;
-    }
-
-    if (rot.X != 0)
-    {
-      float cosX = (float)Math.Cos(rot.X);
-      float sinX = (float)Math.Sin(rot.X);
-      result.Y = y * cosX - z * sinX;
-      result.Z = z * cosX + y * sinX;
-    }
-
-    if (rot.Y != 0)
-    {
-      float cosY = (float)Math.Cos(rot.Y);
-      float sinY = (float)Math.Sin(rot.Y);
-      result.Z = z * cosY - x * sinY;
-      result.X = x * cosY + z * sinY;
-    }
-
-    return result;
-  }
-
   // Get the angle of the position (in HandData position) relative to the eye in degrees
   public Vector2 GetRelativeAngle(ref Vector3 pos)
   {
-    Vector3 translated = RotatePosition(pos, mountAngleOffsetRadians);
-
-    translated.X = translated.X + mountPositionOffset.X; // horizontal
-    translated.Y = translated.Y + mountPositionOffset.Y; // upness
-    translated.Z = translated.Z + mountPositionOffset.Z; // depth
-
     Vector2 angle;
-    angle.X =  (float)Math.Atan2(translated.X, translated.Z) * 180 / (float)Math.PI;
-    angle.Y = -(float)Math.Atan2(translated.Y, translated.Z) * 180 / (float)Math.PI;
+    angle.X =  (float)Math.Atan2(pos.X, pos.Z) * 180 / (float)Math.PI;
+    angle.Y = -(float)Math.Atan2(pos.Y, pos.Z) * 180 / (float)Math.PI;
     return angle;
   }
 
