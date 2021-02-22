@@ -186,7 +186,7 @@ public class Fingers
     return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
   }
 
-  public void HandleLoopEvent(LoopButton b, Boolean pressed)
+  public void HandleLoopEvent(LoopButton b, Boolean pressed, ulong addr)
   {
     Console.WriteLine("{0} {1}", b, pressed ? "pressed" : "released");
     LoopButton fwdButton = (useRightHand ? LoopButton.FWD : LoopButton.BACK);
