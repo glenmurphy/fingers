@@ -18,7 +18,7 @@
       TODO: find out how to not need this; I think net5.0 might do it?
     -->
     <Reference Include="Windows">
-      <HintPath>C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.18362.0\Windows.winmd</HintPath>
+      <HintPath>C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.19041.0\Windows.winmd</HintPath>
     </Reference>
 
     <PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />

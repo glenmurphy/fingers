@@ -66,8 +66,8 @@ public class Fingers
 
     DCS.Monitor(this);
 
-    LeapHandler leap = new LeapHandler(this);
     LoopListener loop = new LoopListener(this);
+    LeapHandler leap = new LeapHandler(this);
 
     // Keep this process running
     Console.ReadLine();
@@ -188,7 +188,7 @@ public class Fingers
 
   public void HandleLoopEvent(LoopButton b, Boolean pressed, ulong addr)
   {
-    Console.WriteLine("{0} {1}", b, pressed ? "pressed" : "released");
+    Console.WriteLine("{0}: {1} {2}", addr.ToString("X"), b, pressed ? "pressed" : "released");
     LoopButton fwdButton = (useRightHand ? LoopButton.FWD : LoopButton.BACK);
     LoopButton backButton = (useRightHand ? LoopButton.BACK : LoopButton.FWD);
 
