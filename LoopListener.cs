@@ -96,6 +96,7 @@ class LoopListener
 {
   Fingers fingers;
   private Dictionary<LoopButton, Boolean> state = new Dictionary<LoopButton, Boolean>();
+  private Dictionary<ulong, uint> battery = new Dictionary<ulong, uint>();
   private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
   private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
 
@@ -107,6 +108,12 @@ class LoopListener
     DataReader reader = DataReader.FromBuffer(args.CharacteristicValue);
     byte[] input = new byte[reader.UnconsumedBufferLength];
     reader.ReadBytes(input);
+
+    uint batt = input[1];
+    if (!battery.ContainsKey(addr) || battery[addr] != batt) {
+      Console.WriteLine("{0}: Battery: {1}%", addr.ToString("X"), batt);
+    }
+    battery[addr] = batt;
 
     uint pressed = input[4]; // 4 for actual loop
     //Console.WriteLine(input);
@@ -152,7 +159,7 @@ class LoopListener
     if (status == GattCommunicationStatus.Success)
     {
       characteristic.ValueChanged += (sender, args) => CharHandler(sender, args, addr);
-      Console.WriteLine("Loop paired");
+      Console.WriteLine("{0}: Paired", addr.ToString("X"));
 
       // The characteristic can get GCed, causing us to stop getting notifications, so we 
       // keep track of it
@@ -160,25 +167,26 @@ class LoopListener
     }
     else
     {
-      Console.WriteLine("Error pairing with Loop");
+      Console.WriteLine("!!! {0}: PAIRING ERROR", addr.ToString("X"));
     }
   }
 
   public async void ConnectDevice(ulong addr)
   {
     string addrString = addr.ToString("X");
-    Console.WriteLine(((loops.ContainsKey(addr) ? "Reconnecting" : "Connecting") + " to loop ({0})"), addrString);
+    Console.WriteLine("{0}: {1}",
+      addrString, loops.ContainsKey(addr) ? "Updating connection" : "Connecting");
 
     BluetoothLEDevice loop = await BluetoothLEDevice.FromBluetoothAddressAsync(addr);
     loop.ConnectionStatusChanged += ConnectionStatusHandler;
     
     // Maintain the connection (not sure this does anything)
-    Console.WriteLine("{0}: Maintaining connection ...", addrString);
+    //Console.WriteLine("{0}: Maintaining connection ...", addrString);
     GattSession s =
         await GattSession.FromDeviceIdAsync(BluetoothDeviceId.FromId(loop.DeviceId));
     s.MaintainConnection = true;
     
-    Console.WriteLine("{0}: Getting services ...", addrString);
+    //Console.WriteLine("{0}: Getting services ...", addrString);
     GattDeviceServicesResult serviceResult =
         await loop.GetGattServicesAsync(BluetoothCacheMode.Uncached);
 
@@ -186,7 +194,7 @@ class LoopListener
     {
       if (service.Uuid.Equals(loopService))
       {
-        Console.WriteLine("{0}: Finding characteristics ...", addrString);
+        //Console.WriteLine("{0}: Finding characteristics ...", addrString);
         GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
 
         foreach (GattCharacteristic characteristic in charResult.Characteristics)
@@ -248,7 +256,7 @@ class LoopListener
     watcher.Received += OnAdvertisementReceived;
 
     // Wait 5 seconds to make sure the device is really out of range
-    watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(10000);
+    watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
     watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
     watcher.Start();
     
@@ -266,7 +274,7 @@ class LoopListener
       w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
       w.Received += (s, a) => { };
       w.Start();
-      await Task.Delay(2500);
+      await Task.Delay(5000);
       w.Stop();
     }
   }

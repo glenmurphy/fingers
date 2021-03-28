@@ -27,7 +27,7 @@ public class Fingers
 
   // When choosing between two hands, how many degrees we should bias towards sticking with the
   // currently tracked hand.
-  private static float overlap = 5;
+  private static float overlap = 2;
 
   // Scroll tracking
   // DCS uses both individual events (for discrete things like channel selectors) as well as amounts
@@ -258,14 +258,14 @@ public class Fingers
 
   private void Scroll(int amount)
   {
-    Console.WriteLine("Scroll {0}", amount);
+    //Console.WriteLine("Scroll {0}", amount);
     scrolled = true;
     Winput.ScrollMouse(amount);
   }
 
   private void EndScroll()
   {
-    Console.WriteLine("Ending scroll");
+    //Console.WriteLine("Ending scroll");
     scrollInitTime = 0;
   }
 
