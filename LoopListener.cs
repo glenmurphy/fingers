@@ -101,7 +101,7 @@ class LoopListener
   private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
 
   private Guid loopService = new Guid("39de08dc-624e-4d6f-8e42-e1adb7d92fe1");
-  private Guid loopChar = new Guid("53b2ad55-c810-4c75-8a25-e1883a081ef6");//);
+  private Guid loopChar = new Guid("53b2ad55-c810-4c75-8a25-e1883a081ef7");
 
   public void CharHandler(GattCharacteristic sender, GattValueChangedEventArgs args, ulong addr)
   {
@@ -109,13 +109,14 @@ class LoopListener
     byte[] input = new byte[reader.UnconsumedBufferLength];
     reader.ReadBytes(input);
 
+    uint pressed = input[0]; // 4 for actual loop
     uint batt = input[1];
+
     if (!battery.ContainsKey(addr) || battery[addr] != batt) {
       Console.WriteLine("{0}: Battery: {1}%", addr.ToString("X"), batt);
     }
     battery[addr] = batt;
 
-    uint pressed = input[4]; // 4 for actual loop
     //Console.WriteLine(input);
 
     foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
@@ -259,9 +260,9 @@ class LoopListener
     watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
     watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
     watcher.Start();
-    
+
     var thread = new Thread(() => {
-      BetterScanner.StartScanner(0, 10, 11);
+      BetterScanner.StartScanner(0, 29, 29);
     });
     thread.Start();
 
@@ -274,7 +275,7 @@ class LoopListener
       w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
       w.Received += (s, a) => { };
       w.Start();
-      await Task.Delay(5000);
+      await Task.Delay(2000);
       w.Stop();
     }
   }

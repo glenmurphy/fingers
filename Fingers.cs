@@ -33,9 +33,7 @@ public class Fingers
   // DCS uses both individual events (for discrete things like channel selectors) as well as amounts
   // for analog things like brightness controls - need to strike a balance between making one too
   // sensitive and the other too insensitive
-  private static float ScrollDetentDegrees = 15;
   private static int ScrollDetentAmount = 750;
-  private static int ScrollClickTime = 200;
 
   // Internal variables
   // The inputScreenRatio setup is translated using inputAngleScale, which is set in 
@@ -44,10 +42,6 @@ public class Fingers
   
   // The last hand we tracked
   HandData currentHand;
-
-  long scrollInitTime = 0;
-  Boolean scrolled = false;
-  float scrollLastAngle = 0;
 
   Vector2 screenCenter;
   Vector2 resetPoint;
@@ -100,7 +94,7 @@ public class Fingers
   }
 
   public bool IsDragging() {
-    return (scrollInitTime != 0 || leftButtonDown || rightButtonDown);
+    return (leftButtonDown || rightButtonDown);
   }
 
   public HandData GetActiveHand(HandData left, HandData right)
@@ -150,20 +144,6 @@ public class Fingers
       return;
     }
 
-    if (scrollInitTime != 0)
-    {
-      while (activeHand.angle > scrollLastAngle + ScrollDetentDegrees)
-      {
-        Scroll(-ScrollDetentAmount);
-        scrollLastAngle += ScrollDetentDegrees;
-      }
-      while (activeHand.angle < scrollLastAngle - ScrollDetentDegrees)
-      {
-        Scroll(ScrollDetentAmount);
-        scrollLastAngle -= ScrollDetentDegrees;
-      }
-    }
-
     currentHand = activeHand;
     SetCursorPos(GetScreenPosition(activeHand.pos));
   }
@@ -172,8 +152,7 @@ public class Fingers
   // down because a user might have them down for other reasons (e.g. holding temporary switches)
   private void DisengageHand()
   {
-    if (scrollInitTime != 0)
-      EndScroll();
+   
   }
 
   private void ToggleCursorEnabled()
@@ -191,27 +170,6 @@ public class Fingers
     Console.WriteLine("{0}: {1} {2}", addr.ToString("X"), b, pressed ? "pressed" : "released");
     LoopButton fwdButton = (useRightHand ? LoopButton.FWD : LoopButton.BACK);
     LoopButton backButton = (useRightHand ? LoopButton.BACK : LoopButton.FWD);
-
-    if (b == fwdButton)
-    {
-      if (pressed)
-      {
-        if (currentHand.isActive)
-          StartScroll();
-        else
-          Scroll(ScrollDetentAmount);
-      }
-      else
-      {
-        // If we just tapped the button and didn't do anything, then send a single scroll event;
-        // this is useful for discrete controls
-        if (GetTime() < scrollInitTime + ScrollClickTime && scrolled == false)
-        {
-          Scroll(ScrollDetentAmount);
-        }
-        EndScroll();
-      }
-    }
 
     if (pressed && (b == LoopButton.UP || !cursorEnabled))
     {
@@ -241,32 +199,20 @@ public class Fingers
       Winput.MouseButton(Winput.MouseEventF.RightUp);
       rightButtonDown = false;
     }
+    else if (b == fwdButton && pressed)
+    {
+      Scroll(-ScrollDetentAmount);
+    }
     else if (b == LoopButton.DOWN && pressed)
     {
       Scroll(-ScrollDetentAmount);
     }
   }
 
-  private void StartScroll()
-  {
-    Console.WriteLine("Starting scroll");
-
-    scrollInitTime = GetTime();
-    scrolled = false;
-    scrollLastAngle = currentHand.angle;
-  }
-
   private void Scroll(int amount)
   {
     //Console.WriteLine("Scroll {0}", amount);
-    scrolled = true;
     Winput.ScrollMouse(amount);
-  }
-
-  private void EndScroll()
-  {
-    //Console.WriteLine("Ending scroll");
-    scrollInitTime = 0;
   }
 
   private void SetCursorPos(Vector2 pos)

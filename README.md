@@ -1,12 +1,11 @@
 # Fingers
 
-This lets Digital Combat Simulator (DCS) VR use the Leap Motion and a North Loop (the
-ring thing that came with the North Focals) to press buttons. See photos and video on the [Twitter thread](https://twitter.com/gmurphy/status/1341829602138681345).
+This lets Digital Combat Simulator (DCS) VR use the Leap Motion and a bluetooth ring to press buttons. See photos and video on the [Twitter thread](https://twitter.com/gmurphy/status/1341829602138681345).
 
 ### Requirements
 
 * Leap Motion tracker
-* A Loop from North (came with the North Focals, which you can't buy anymore)
+* A bluetooth ring (of custom design, details soon)
 * A Windows PC with Bluetooth
 
 ### Build instructions
