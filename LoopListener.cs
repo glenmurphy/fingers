@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks; // Dictionary
 using Windows.Storage.Streams; // DataReader
@@ -14,15 +14,16 @@ using Windows.Devices.Bluetooth.GenericAttributeProfile;
 
 public enum LoopButton
 {
-  CENTER = 1,
-  UP = 2,
-  DOWN = 4,
-  FWD = 8,
-  BACK = 16
+    CENTER = 1,
+    UP = 2,
+    DOWN = 4,
+    FWD = 8,
+    BACK = 16
 }
 
 // https://stackoverflow.com/questions/37307301/ble-scan-interval-windows-10/37328965
-class BetterScanner {
+class BetterScanner
+{
     /// <summary>
     /// The BLUETOOTH_FIND_RADIO_PARAMS structure facilitates enumerating installed Bluetooth radios.
     /// </summary>
@@ -94,202 +95,210 @@ class BetterScanner {
 
 class LoopListener
 {
-  Fingers fingers;
-  private Dictionary<LoopButton, Boolean> state = new Dictionary<LoopButton, Boolean>();
-  private Dictionary<ulong, uint> battery = new Dictionary<ulong, uint>();
-  private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
-  private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
+    Fingers fingers;
+    private Dictionary<LoopButton, Boolean> state = new Dictionary<LoopButton, Boolean>();
+    private Dictionary<ulong, uint> battery = new Dictionary<ulong, uint>();
+    private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
+    private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
 
-  private Guid loopService = new Guid("39de08dc-624e-4d6f-8e42-e1adb7d92fe1");
-  private Guid loopChar = new Guid("53b2ad55-c810-4c75-8a25-e1883a081ef7");
+    private Guid loopService = new Guid("39de08dc-624e-4d6f-8e42-e1adb7d92fe1");
+    private Guid loopChar = new Guid("53b2ad55-c810-4c75-8a25-e1883a081ef7");
 
-  public void CharHandler(GattCharacteristic sender, GattValueChangedEventArgs args, ulong addr)
-  {
-    DataReader reader = DataReader.FromBuffer(args.CharacteristicValue);
-    byte[] input = new byte[reader.UnconsumedBufferLength];
-    reader.ReadBytes(input);
-
-    uint pressed = input[0]; // 4 for actual loop
-    uint batt = input[1];
-
-    if (!battery.ContainsKey(addr) || battery[addr] != batt) {
-      Console.WriteLine("{0}: Battery: {1}%", addr.ToString("X"), batt);
-    }
-    battery[addr] = batt;
-
-    //Console.WriteLine(input);
-
-    foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
+    public void CharHandler(GattCharacteristic sender, GattValueChangedEventArgs args, ulong addr)
     {
-      if ((pressed & (uint)button) == (uint)button)
-      {
-        if (state[button] != true)
+        DataReader reader = DataReader.FromBuffer(args.CharacteristicValue);
+        byte[] input = new byte[reader.UnconsumedBufferLength];
+        reader.ReadBytes(input);
+
+        uint pressed = input[0]; // 4 for actual loop
+        uint batt = input[1];
+
+        if (!battery.ContainsKey(addr) || battery[addr] != batt)
         {
-          fingers.HandleLoopEvent(button, true, addr);
-          state[button] = true;
+            Console.WriteLine("{0}: Battery: {1}%", addr.ToString("X"), batt);
         }
-      }
-      else if (state[button] == true)
-      {
-        fingers.HandleLoopEvent(button, false, addr);
-        state[button] = false;
-      }
-    }
-  }
+        battery[addr] = batt;
 
-  public void ConnectionStatusHandler(BluetoothLEDevice device, Object o)
-  {
-    Console.WriteLine("{0}: {1}", device.BluetoothAddress.ToString("X"), device.ConnectionStatus);
-    if (device.ConnectionStatus == BluetoothConnectionStatus.Connected)
-    {
-      // ConnectDevice(device.BluetoothAddress);
-    }
-    if (device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
-    {
-      loops[device.BluetoothAddress] = null;
-      characteristics[device.BluetoothAddress] = null;
-    }
-  }
-
-  public async void Subscribe(GattCharacteristic characteristic, ulong addr)
-  {
-    GattCommunicationStatus status =
-      await characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
-        GattClientCharacteristicConfigurationDescriptorValue.Notify);
-
-    if (status == GattCommunicationStatus.Success)
-    {
-      characteristic.ValueChanged += (sender, args) => CharHandler(sender, args, addr);
-      Console.WriteLine("{0}: Paired", addr.ToString("X"));
-
-      // The characteristic can get GCed, causing us to stop getting notifications, so we 
-      // keep track of it
-      characteristics[addr] = characteristic;
-    }
-    else
-    {
-      Console.WriteLine("!!! {0}: PAIRING ERROR", addr.ToString("X"));
-    }
-  }
-
-  public async void ConnectDevice(ulong addr)
-  {
-    string addrString = addr.ToString("X");
-    Console.WriteLine("{0}: {1}",
-      addrString, loops.ContainsKey(addr) ? "Updating connection" : "Connecting");
-
-    BluetoothLEDevice loop = await BluetoothLEDevice.FromBluetoothAddressAsync(addr);
-    loop.ConnectionStatusChanged += ConnectionStatusHandler;
-    
-    // Maintain the connection (not sure this does anything)
-    //Console.WriteLine("{0}: Maintaining connection ...", addrString);
-    GattSession s =
-        await GattSession.FromDeviceIdAsync(BluetoothDeviceId.FromId(loop.DeviceId));
-    s.MaintainConnection = true;
-    
-    //Console.WriteLine("{0}: Getting services ...", addrString);
-    GattDeviceServicesResult serviceResult =
-        await loop.GetGattServicesAsync(BluetoothCacheMode.Uncached);
-
-    foreach (GattDeviceService service in serviceResult.Services)
-    {
-      if (service.Uuid.Equals(loopService))
-      {
-        //Console.WriteLine("{0}: Finding characteristics ...", addrString);
-        GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
-
-        foreach (GattCharacteristic characteristic in charResult.Characteristics)
+        //Console.WriteLine(input);
+        foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
         {
-          if (characteristic.Uuid.Equals(loopChar))
-          {
-            Subscribe(characteristic, addr);
-            // Prevent GC of the device and session
-            loops[addr] = loop;
-            break;
-          }
+            if ((pressed & (uint)button) == (uint)button)
+            {
+                if (state[button] != true)
+                {
+                    fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, true, addr); });
+                    state[button] = true;
+                }
+            }
+            else if (state[button] == true)
+            {
+                fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, false, addr); });
+                state[button] = false;
+            }
         }
-      }
-      else if (service.Uuid.Equals(GattServiceUuids.Battery))
-      {
-        GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
+    }
 
-        foreach (GattCharacteristic characteristic in charResult.Characteristics)
+    public void ConnectionStatusHandler(BluetoothLEDevice device, Object o)
+    {
+        Console.WriteLine("{0}: {1}", device.BluetoothAddress.ToString("X"), device.ConnectionStatus);
+        if (device.ConnectionStatus == BluetoothConnectionStatus.Connected)
         {
-          if (!characteristic.Uuid.Equals(GattCharacteristicUuids.BatteryLevel))
-            continue;
-          
-          GattReadResult batt = await characteristic.ReadValueAsync();
-
-          DataReader reader = DataReader.FromBuffer(batt.Value);
-          byte[] input = new byte[reader.UnconsumedBufferLength];
-          reader.ReadBytes(input);
-          Console.WriteLine("Loop battery: {0}%", input[0]);
-          break;
+            // ConnectDevice(device.BluetoothAddress);
         }
-      }
+        if (device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
+        {
+            loops[device.BluetoothAddress] = null;
+            characteristics[device.BluetoothAddress] = null;
+        }
     }
-    
-  }
 
-  public void OnAdvertisementReceived(BluetoothLEAdvertisementWatcher watcher, BluetoothLEAdvertisementReceivedEventArgs eventArgs)
-  {
-    foreach (var p in eventArgs.Advertisement.ServiceUuids)
+    public async void Subscribe(GattCharacteristic characteristic, ulong addr)
     {
-      //Console.WriteLine("{0}: {1}", eventArgs.BluetoothAddress.ToString("X"), p);
-      if (p == loopService)
-      {
-        ConnectDevice(eventArgs.BluetoothAddress);
-      }
+        GattCommunicationStatus status =
+          await characteristic.WriteClientCharacteristicConfigurationDescriptorAsync(
+            GattClientCharacteristicConfigurationDescriptorValue.Notify);
+
+        if (status == GattCommunicationStatus.Success)
+        {
+            characteristic.ValueChanged += (sender, args) => CharHandler(sender, args, addr);
+            Console.WriteLine("{0}: Paired", addr.ToString("X"));
+
+            fingers.ui.Dispatcher.Invoke(() =>
+            {
+                fingers.HandleLoopConnected(addr);
+            });
+
+            // The characteristic can get GCed, causing us to stop getting notifications, so we 
+            // keep track of it
+            characteristics[addr] = characteristic;
+        }
+        else
+        {
+            Console.WriteLine("!!! {0}: PAIRING ERROR", addr.ToString("X"));
+        }
     }
-  }
 
-  public async void Watch() {
-    BluetoothLEAdvertisementWatcher watcher = new BluetoothLEAdvertisementWatcher();
-    watcher.ScanningMode = BluetoothLEScanningMode.Passive;
-
-    // Only activate the watcher when we're recieving values >= -80
-    // watcher.SignalStrengthFilter.InRangeThresholdInDBm = -80;
-
-    // Stop watching if the value drops below -90 (user walked away)
-    // watcher.SignalStrengthFilter.OutOfRangeThresholdInDBm = -90;
-
-    // Register callback for when we see an advertisements
-    watcher.Received += OnAdvertisementReceived;
-
-    // Wait 5 seconds to make sure the device is really out of range
-    watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
-    watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
-    watcher.Start();
-
-    var thread = new Thread(() => {
-      BetterScanner.StartScanner(0, 29, 29);
-    });
-    thread.Start();
-
-    // JIGGLE THE CORD
-    // https://stackoverflow.com/questions/38596667/bluetoothleadvertisementwatcher-doesnt-work
-    while(true) {
-      // Starting watching for advertisements
-      BluetoothLEAdvertisementWatcher w = new BluetoothLEAdvertisementWatcher();
-      w.ScanningMode = BluetoothLEScanningMode.Passive;
-      w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
-      w.Received += (s, a) => { };
-      w.Start();
-      await Task.Delay(2000);
-      w.Stop();
-    }
-  }
-
-  public LoopListener(Fingers parent)
-  {
-    fingers = parent;
-
-    // Initialize loop state
-    foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
+    public async void ConnectDevice(ulong addr)
     {
-      state[button] = false;
+        string addrString = addr.ToString("X");
+        Console.WriteLine("{0}: {1}",
+          addrString, loops.ContainsKey(addr) ? "Updating connection" : "Connecting");
+
+        BluetoothLEDevice loop = await BluetoothLEDevice.FromBluetoothAddressAsync(addr);
+        loop.ConnectionStatusChanged += ConnectionStatusHandler;
+
+        // Maintain the connection (not sure this does anything)
+        //Console.WriteLine("{0}: Maintaining connection ...", addrString);
+        GattSession s =
+            await GattSession.FromDeviceIdAsync(BluetoothDeviceId.FromId(loop.DeviceId));
+        s.MaintainConnection = true;
+
+        //Console.WriteLine("{0}: Getting services ...", addrString);
+        GattDeviceServicesResult serviceResult =
+            await loop.GetGattServicesAsync(BluetoothCacheMode.Uncached);
+
+        foreach (GattDeviceService service in serviceResult.Services)
+        {
+            if (service.Uuid.Equals(loopService))
+            {
+                //Console.WriteLine("{0}: Finding characteristics ...", addrString);
+                GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
+
+                foreach (GattCharacteristic characteristic in charResult.Characteristics)
+                {
+                    if (characteristic.Uuid.Equals(loopChar))
+                    {
+                        Subscribe(characteristic, addr);
+                        // Prevent GC of the device and session
+                        loops[addr] = loop;
+                        break;
+                    }
+                }
+            }
+            else if (service.Uuid.Equals(GattServiceUuids.Battery))
+            {
+                GattCharacteristicsResult charResult = await service.GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
+
+                foreach (GattCharacteristic characteristic in charResult.Characteristics)
+                {
+                    if (!characteristic.Uuid.Equals(GattCharacteristicUuids.BatteryLevel))
+                        continue;
+
+                    GattReadResult batt = await characteristic.ReadValueAsync();
+
+                    DataReader reader = DataReader.FromBuffer(batt.Value);
+                    byte[] input = new byte[reader.UnconsumedBufferLength];
+                    reader.ReadBytes(input);
+                    Console.WriteLine("Loop battery: {0}%", input[0]);
+                    break;
+                }
+            }
+        }
+
     }
 
-    Watch();
-  }
+    public void OnAdvertisementReceived(BluetoothLEAdvertisementWatcher watcher, BluetoothLEAdvertisementReceivedEventArgs eventArgs)
+    {
+        foreach (var p in eventArgs.Advertisement.ServiceUuids)
+        {
+            //Console.WriteLine("{0}: {1}", eventArgs.BluetoothAddress.ToString("X"), p);
+            if (p == loopService)
+            {
+                ConnectDevice(eventArgs.BluetoothAddress);
+            }
+        }
+    }
+
+    public async void Watch()
+    {
+        BluetoothLEAdvertisementWatcher watcher = new BluetoothLEAdvertisementWatcher();
+        watcher.ScanningMode = BluetoothLEScanningMode.Passive;
+
+        // Only activate the watcher when we're recieving values >= -80
+        // watcher.SignalStrengthFilter.InRangeThresholdInDBm = -80;
+
+        // Stop watching if the value drops below -90 (user walked away)
+        // watcher.SignalStrengthFilter.OutOfRangeThresholdInDBm = -90;
+
+        // Register callback for when we see an advertisements
+        watcher.Received += OnAdvertisementReceived;
+
+        // Wait 5 seconds to make sure the device is really out of range
+        watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
+        watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
+        watcher.Start();
+
+        var thread = new Thread(() =>
+        {
+            BetterScanner.StartScanner(0, 29, 29);
+        });
+        thread.Start();
+
+        // JIGGLE THE CORD
+        // https://stackoverflow.com/questions/38596667/bluetoothleadvertisementwatcher-doesnt-work
+        while (true)
+        {
+            // Starting watching for advertisements
+            BluetoothLEAdvertisementWatcher w = new BluetoothLEAdvertisementWatcher();
+            w.ScanningMode = BluetoothLEScanningMode.Passive;
+            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
+            w.Received += (s, a) => { };
+            w.Start();
+            await Task.Delay(2000);
+            w.Stop();
+        }
+    }
+
+    public LoopListener(Fingers parent)
+    {
+        fingers = parent;
+
+        // Initialize loop state
+        foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
+        {
+            state[button] = false;
+        }
+
+        Watch();
+    }
 }

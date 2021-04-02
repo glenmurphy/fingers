@@ -1,0 +1,29 @@
+﻿<Window x:Class="FingersApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FingersApp"
+        mc:Ignorable="d"
+        Loaded="Page_Loaded"
+        Title="Fingers" Height="317" Width="280" Background="#FF0F0F0F">
+    <Grid Margin="0,0,0,0">
+        <Grid HorizontalAlignment="Left" Height="109" Margin="10,10,0,0" VerticalAlignment="Top" Width="252">
+            <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Leap" VerticalAlignment="Top" Width="67" Foreground="White"/>
+            <TextBlock Name="LeapStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Connecting..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+            <ComboBox Name="LeapProfileSelector" HorizontalAlignment="Left" Margin="122,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ComboBox_SelectionChanged">
+                <ComboBoxItem Content="Pimax" HorizontalAlignment="Left" Width="118"/>
+                <ComboBoxItem Content="Oculus" HorizontalAlignment="Left" Width="118"/>
+            </ComboBox>
+        </Grid>
+        <Grid HorizontalAlignment="Left" Height="109" Margin="10,124,0,0" VerticalAlignment="Top" Width="105">
+            <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Left Ring" VerticalAlignment="Top" Width="67" Foreground="White"/>
+            <TextBlock x:Name="LeftRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Connecting..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+        </Grid>
+        <Grid HorizontalAlignment="Left" Height="109" Margin="150,124,0,0" VerticalAlignment="Top" Width="121">
+            <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Right Ring" VerticalAlignment="Top" Width="67" Foreground="White"/>
+            <TextBlock x:Name="RightRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Connecting..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+        </Grid>
+        <Button Content="Swap" HorizontalAlignment="Left" Margin="113,142,0,0" VerticalAlignment="Top" Width="38" Click="Swap"/>
+    </Grid>
+</Window>

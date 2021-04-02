@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!--<TargetFramework>netcoreapp3.1</TargetFramework>-->
+	<TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+	  
+	<!-- you will *definitely* need to change this -->
+	<LeapSDKDir>C:\bin\LeapSDK4.0</LeapSDKDir>
+	<AssemblyName>FingersApp</AssemblyName>
+	<RootNamespace>FingersApp</RootNamespace>
+  </PropertyGroup>
+	
+	<ItemGroup>
+		<Reference Include="System.Runtime.InteropServices.WindowsRuntime" />
+		<Reference Include="System.Windows.Forms" />
+
+		<!-- 
+		you will *almost certainly* need to change this 
+		TODO: find out how to not need this; I think net5.0 might do it?
+	-->
+		<Reference Include="Windows">
+			<HintPath>C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.19041.0\Windows.winmd</HintPath>
+		</Reference>
+
+		<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Compile Update="Properties\Settings.Designer.cs">
+	    <DesignTimeSharedInput>True</DesignTimeSharedInput>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Settings.settings</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <None Update="Properties\Settings.settings">
+	    <Generator>SettingsSingleFileGenerator</Generator>
+	    <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+	  </None>
+	</ItemGroup>
+
+	<Target Name="TestTarget" AfterTargets="Build">
+		<Copy SourceFiles="$(LeapSDKDir)\lib\x64\LeapC.dll" DestinationFolder="$(OutputPath)" ContinueOnError="false" />
+	</Target>
+</Project>

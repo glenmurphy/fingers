@@ -1,3 +1,4 @@
 # c# build directories
 bin/
 obj/
+/.vs/FingersApp
