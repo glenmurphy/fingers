@@ -18,11 +18,11 @@
         </Grid>
         <Grid HorizontalAlignment="Left" Height="109" Margin="10,124,0,0" VerticalAlignment="Top" Width="105">
             <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Left Ring" VerticalAlignment="Top" Width="67" Foreground="White"/>
-            <TextBlock x:Name="LeftRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Connecting..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+            <TextBlock x:Name="LeftRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Searching..." VerticalAlignment="Top" Width="93" Foreground="White"/>
         </Grid>
         <Grid HorizontalAlignment="Left" Height="109" Margin="150,124,0,0" VerticalAlignment="Top" Width="121">
             <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Right Ring" VerticalAlignment="Top" Width="67" Foreground="White"/>
-            <TextBlock x:Name="RightRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Connecting..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+            <TextBlock x:Name="RightRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Searching..." VerticalAlignment="Top" Width="93" Foreground="White"/>
         </Grid>
         <Button Content="Swap" HorizontalAlignment="Left" Margin="113,142,0,0" VerticalAlignment="Top" Width="38" Click="Swap"/>
     </Grid>

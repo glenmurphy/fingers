@@ -185,6 +185,22 @@ public class Fingers
         return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
     }
 
+    public void HandleLoopConnecting(ulong addr)
+    {
+        if (leftRingAddr != 0 && rightRingAddr != 0)
+        {
+            return;
+        }
+        else if (leftRingAddr != 0 || FingersApp.Properties.Settings.Default.RightRingID == addr)
+        {
+            if (rightRingAddr != addr) ui.SetRightRingStatus("Connecting...");
+        }
+        else if (leftRingAddr != addr) 
+        {
+            ui.SetLeftRingStatus("Connecting...");
+        }
+    }
+
     public void HandleLoopConnected(ulong addr)
     {
         String addrString = addr.ToString("X");
