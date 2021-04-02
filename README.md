@@ -10,13 +10,12 @@ This lets Digital Combat Simulator (DCS) VR use the Leap Motion and a bluetooth 
 
 ### Build instructions
 
-- Install the Leap 4.1 SDK (5.0 beta has also been tested and appears to work well)
-- Install [.NET SDK](https://dotnet.microsoft.com/download)
+- Install the Leap 4.1 SDK (5.0 beta has also been tested and appears to work, but with occasional disconnects)
 - `git clone https://github.com/glenmurphy/fingers.git`
-- `dotnet add package System.Runtime.WindowsRuntime --version 4.7.0`
+- Open FingersApp.sln in Visual Studio 2019 (need to make sure you have .NET4.8 SDK installed)
 - Make sure the LeapSDK and Windows.winmd paths in fingers.csproj point to the right place
 - Cross your actual fingers because build instructions usually forget to mention all kinds of stuff the author didn't realize was necessary
-- `dotnet run`
+- Build + Run
 
 ### Setup / Config
 - Make sure your Leap understands which way is up - look in the vizualizer and flip it in the control panel if necessary; the auto orientation doesn't always work. This gets reset every time you update Leap, and is the most likely cause of problems.
