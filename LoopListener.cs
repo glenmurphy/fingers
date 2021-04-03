@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks; // Dictionary
 using Windows.Storage.Streams; // DataReader
-using System.Diagnostics;
+using System.Diagnostics; // Debug
 
 // BetterScanner
 using System.Runtime.InteropServices;

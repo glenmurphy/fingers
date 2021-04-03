@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics; // Vector
 using System.Windows.Forms; // SystemInformation
-
+using System.Diagnostics; // Debug
 public enum RingStatus
 {
     SEARCHING = 1,
@@ -63,8 +63,6 @@ public class Fingers
     LoopListener loop;
     LeapHandler leap;
 
-
-
     public Fingers(FingersApp.MainWindow mainWindow)
     {
         ui = mainWindow;
@@ -87,7 +85,7 @@ public class Fingers
 
     public void HandleDCSWindow(Vector4 dim)
     {
-        Console.WriteLine("DCS Window Size Adjustment: {0}", dim);
+        Debug.WriteLine("DCS Window Size Adjustment: {0}", dim);
         inputAngleScale = new Vector2(dim.W / inputScreenWidthDegrees,
                                       dim.Z / inputScreenHeightDegrees);
     }
@@ -293,7 +291,7 @@ public class Fingers
 
     public void HandleLoopEvent(LoopButton b, Boolean pressed, ulong addr)
     {
-        Console.WriteLine("{0}: {1} {2}", addr.ToString("X"), b, pressed ? "pressed" : "released");
+        Debug.WriteLine("{0}: {1} {2}", addr.ToString("X"), b, pressed ? "pressed" : "released");
         if (addr == rightRingAddr)
         {
             if (b == LoopButton.FWD) b = LoopButton.BACK;
