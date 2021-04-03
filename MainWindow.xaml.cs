@@ -36,13 +36,21 @@ namespace FingersApp
         {
             LeapStatus.Text = status;
         }
-        public void SetLeftRingStatus(String status)
+
+        private void SetRingStatus(TextBlock ring, RingStatus status, ulong addr)
         {
-            LeftRingStatus.Text = status.Equals("0") ? "Connecting..." : status;
+            if (status == RingStatus.CONNECTED)
+                ring.Text = addr.ToString("X").Substring(8);
+            else
+                ring.Text = status == RingStatus.CONNECTING ? "CONNECTING" : "SEARCHING";
         }
-        public void SetRightRingStatus(String status)
+        public void SetLeftRingStatus(RingStatus status, ulong addr)
         {
-            RightRingStatus.Text = status.Equals("0") ? "Connecting..." : status;
+            SetRingStatus(LeftRingStatus, status, addr);
+        }
+        public void SetRightRingStatus(RingStatus status, ulong addr)
+        {
+            SetRingStatus(RightRingStatus, status, addr);
         }
 
         public void SetButtonStatus(LoopButton b, Boolean pressed, Boolean rightHand)

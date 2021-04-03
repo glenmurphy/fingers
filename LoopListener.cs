@@ -269,7 +269,7 @@ class LoopListener
 
         // Wait 5 seconds to make sure the device is really out of range
         watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
-        watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(50);
+        watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
         watcher.Start();
 
         var thread = new Thread(() =>
@@ -285,8 +285,8 @@ class LoopListener
             // Starting watching for advertisements
             BluetoothLEAdvertisementWatcher w = new BluetoothLEAdvertisementWatcher();
             w.ScanningMode = BluetoothLEScanningMode.Passive;
-            w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
-            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(50);
+            w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
+            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
             w.Received += (s, a) => { };
             w.Start();
             await Task.Delay(2000);

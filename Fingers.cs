@@ -2,6 +2,13 @@
 using System.Numerics; // Vector
 using System.Windows.Forms; // SystemInformation
 
+public enum RingStatus
+{
+    SEARCHING = 1,
+    CONNECTING = 2,
+    CONNECTED = 4,
+}
+
 public class Fingers
 {
     // how long to pause cursor movement after mouseDown events; not useful in DCS, but helps prevent
@@ -55,6 +62,8 @@ public class Fingers
 
     LoopListener loop;
     LeapHandler leap;
+
+
 
     public Fingers(FingersApp.MainWindow mainWindow)
     {
@@ -193,11 +202,11 @@ public class Fingers
         }
         else if (leftRingAddr != 0 || FingersApp.Properties.Settings.Default.RightRingID == addr)
         {
-            if (rightRingAddr != addr) ui.SetRightRingStatus("Connecting...");
+            if (rightRingAddr != addr) ui.SetRightRingStatus(RingStatus.CONNECTING, 0);
         }
         else if (leftRingAddr != addr) 
         {
-            ui.SetLeftRingStatus("Connecting...");
+            ui.SetLeftRingStatus(RingStatus.CONNECTING, 0);
         }
     }
 
@@ -239,14 +248,14 @@ public class Fingers
     private void UpdateRingStatus()
     {
         if (leftRingAddr > 0)
-            ui.SetLeftRingStatus(leftRingAddr.ToString("X").Substring(8));
+            ui.SetLeftRingStatus(RingStatus.CONNECTED, leftRingAddr);
         else
-            ui.SetLeftRingStatus("Searching...");
+            ui.SetLeftRingStatus(RingStatus.SEARCHING, 0);
 
         if (rightRingAddr > 0)
-            ui.SetRightRingStatus(rightRingAddr.ToString("X").Substring(8));
+            ui.SetRightRingStatus(RingStatus.CONNECTED, rightRingAddr);
         else
-            ui.SetRightRingStatus("Searching...");
+            ui.SetRightRingStatus(RingStatus.SEARCHING, 0);
     }
     public void SwapRings()
     {
