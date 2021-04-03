@@ -156,11 +156,17 @@ public class Fingers
 
     public void HandleLeapConnected()
     {
-        ui.SetLeapStatus("Connected");
+        ui.Dispatcher.Invoke(() =>
+        {
+            ui.SetLeapStatus("Connected");
+        });
     }
     public void HandleLeapDisconnected()
     {
-        ui.SetLeapStatus("Connecting...");
+        ui.Dispatcher.Invoke(() =>
+        {
+            ui.SetLeapStatus("Connecting...");
+        });
     }
 
     public void HandleHands(HandData left, HandData right)
@@ -202,11 +208,17 @@ public class Fingers
         }
         else if (leftRingAddr != 0 || FingersApp.Properties.Settings.Default.RightRingID == addr)
         {
-            if (rightRingAddr != addr) ui.SetRightRingStatus(RingStatus.CONNECTING, 0);
+            if (rightRingAddr != addr) ui.Dispatcher.Invoke(() =>
+            {
+                ui.SetRightRingStatus(RingStatus.CONNECTING, 0);
+            });
         }
         else if (leftRingAddr != addr) 
         {
-            ui.SetLeftRingStatus(RingStatus.CONNECTING, 0);
+            ui.Dispatcher.Invoke(() =>
+            {
+                ui.SetLeftRingStatus(RingStatus.CONNECTING, 0);
+            });
         }
     }
 
@@ -244,7 +256,13 @@ public class Fingers
             leap.SetProfile(10, 0, 0, 0, -45, 68);
         }
 
-        if (updateUI) ui.SelectLeapProfile(name);
+        if (updateUI)
+        {
+            ui.Dispatcher.Invoke(() =>
+            {
+                ui.SelectLeapProfile(name);
+            });
+        }
         FingersApp.Properties.Settings.Default.LeapProfile = name;
         FingersApp.Properties.Settings.Default.Save();
     }
@@ -252,14 +270,15 @@ public class Fingers
     private void UpdateRingStatus()
     {
         if (leftRingAddr > 0)
-            ui.SetLeftRingStatus(RingStatus.CONNECTED, leftRingAddr);
+            ui.Dispatcher.Invoke(() => { ui.SetLeftRingStatus(RingStatus.CONNECTED, leftRingAddr); });
         else
-            ui.SetLeftRingStatus(RingStatus.SEARCHING, 0);
+            ui.Dispatcher.Invoke(() => { ui.SetLeftRingStatus(RingStatus.SEARCHING, 0); });
+
 
         if (rightRingAddr > 0)
-            ui.SetRightRingStatus(RingStatus.CONNECTED, rightRingAddr);
+            ui.Dispatcher.Invoke(() => { ui.SetRightRingStatus(RingStatus.CONNECTED, rightRingAddr); });
         else
-            ui.SetRightRingStatus(RingStatus.SEARCHING, 0);
+            ui.Dispatcher.Invoke(() => { ui.SetRightRingStatus(RingStatus.SEARCHING, 0); });
     }
     public void SwapRings()
     {
@@ -280,8 +299,11 @@ public class Fingers
             if (b == LoopButton.FWD) b = LoopButton.BACK;
             else if (b == LoopButton.BACK) b = LoopButton.FWD;
         }
-            
-        ui.SetButtonStatus(b, pressed, (addr == rightRingAddr));
+
+        ui.Dispatcher.Invoke(() =>
+        {
+            ui.SetButtonStatus(b, pressed, (addr == rightRingAddr));
+        });
 
         if (pressed && (b == LoopButton.UP || !cursorEnabled))
         {

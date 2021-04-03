@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,9 +28,15 @@ namespace FingersApp
             InitializeComponent();
         }
 
+        public void StartFingers(MainWindow window)
+        {
+            fingers = new Fingers(window);
+        }
+
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            fingers = new Fingers(this);
+            var t = new Thread(() => new Fingers(this));
+            t.Start();
         }
 
         public void SetLeapStatus(String status)
