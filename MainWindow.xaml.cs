@@ -22,18 +22,9 @@ namespace FingersApp
     {
         Fingers fingers;
 
-        TextBlock leapStatus;
-        TextBlock leftRingStatus;
-        TextBlock rightRingStatus;
-        ComboBox leapProfileSelector;
-
         public MainWindow()
         {
             InitializeComponent();
-            leapStatus = (TextBlock)this.FindName("LeapStatus");
-            leftRingStatus = (TextBlock)this.FindName("LeftRingStatus");
-            rightRingStatus = (TextBlock)this.FindName("RightRingStatus");
-            leapProfileSelector = (ComboBox)this.FindName("LeapProfileSelector");
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
@@ -43,21 +34,42 @@ namespace FingersApp
 
         public void SetLeapStatus(String status)
         {
-            leapStatus.Text = status;
+            LeapStatus.Text = status;
         }
         public void SetLeftRingStatus(String status)
         {
-            leftRingStatus.Text = status.Equals("0") ? "Connecting..." : status;
+            LeftRingStatus.Text = status.Equals("0") ? "Connecting..." : status;
         }
         public void SetRightRingStatus(String status)
         {
-            rightRingStatus.Text = status.Equals("0") ? "Connecting..." : status;
+            RightRingStatus.Text = status.Equals("0") ? "Connecting..." : status;
+        }
+
+        public void SetButtonStatus(LoopButton b, Boolean pressed, Boolean rightHand)
+        {
+            ImageSource img = (ImageSource)(pressed ? FindResource("IndicatorOn") : FindResource("IndicatorOff"));
+
+            if (rightHand)
+            {
+                if (b == LoopButton.CENTER) RightRingBtnCenter.Source = img;
+                else if (b == LoopButton.FWD) RightRingBtnFwd.Source = img;
+                else if (b == LoopButton.BACK) RightRingBtnBack.Source = img;
+                else if (b == LoopButton.UP) RightRingBtnUp.Source = img;
+                else if (b == LoopButton.DOWN) RightRingBtnDown.Source = img;
+            } else
+            {
+                if (b == LoopButton.CENTER) LeftRingBtnCenter.Source = img;
+                else if (b == LoopButton.FWD) LeftRingBtnFwd.Source = img;
+                else if (b == LoopButton.BACK) LeftRingBtnBack.Source = img;
+                else if (b == LoopButton.UP) LeftRingBtnUp.Source = img;
+                else if (b == LoopButton.DOWN) LeftRingBtnDown.Source = img;
+            }
         }
 
         public void SelectLeapProfile(String name)
         {
-            leapProfileSelector.SelectedIndex =
-                leapProfileSelector.Items.Cast<ComboBoxItem>()
+            LeapProfileSelector.SelectedIndex =
+                LeapProfileSelector.Items.Cast<ComboBoxItem>()
                     .Select(c => (string)c.Content)
                     .ToList()
                     .IndexOf(name);
@@ -66,9 +78,21 @@ namespace FingersApp
         private void Swap(object sender, RoutedEventArgs e)
         {
             fingers.SwapRings();
+
+            ImageSource img = (ImageSource)FindResource("IndicatorOff");
+            LeftRingBtnCenter.Source = img;
+            LeftRingBtnFwd.Source = img;
+            LeftRingBtnBack.Source = img;
+            LeftRingBtnUp.Source = img;
+            LeftRingBtnDown.Source = img;
+            RightRingBtnCenter.Source = img;
+            RightRingBtnFwd.Source = img;
+            RightRingBtnBack.Source = img;
+            RightRingBtnUp.Source = img;
+            RightRingBtnDown.Source = img;
         }
 
-        private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void LeapProfileSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.AddedItems.Count == 0) return;
 

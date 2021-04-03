@@ -97,7 +97,7 @@ class BetterScanner
 class LoopListener
 {
     Fingers fingers;
-    private Dictionary<LoopButton, Boolean> state = new Dictionary<LoopButton, Boolean>();
+    private Dictionary<ulong, uint> loopState = new Dictionary<ulong, uint>();
     private Dictionary<ulong, uint> battery = new Dictionary<ulong, uint>();
     private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
     private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
@@ -111,7 +111,7 @@ class LoopListener
         byte[] input = new byte[reader.UnconsumedBufferLength];
         reader.ReadBytes(input);
 
-        uint pressed = input[0]; // 4 for actual loop
+        uint state = input[0]; // 4 for actual loop
         uint batt = input[1];
 
         if (!battery.ContainsKey(addr) || battery[addr] != batt)
@@ -123,20 +123,19 @@ class LoopListener
         //Debug.WriteLine(input);
         foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
         {
-            if ((pressed & (uint)button) == (uint)button)
+            if ((state & (uint)button) == (uint)button)
             {
-                if (state[button] != true)
+                if ((loopState[addr] & (uint)button) == 0)
                 {
                     fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, true, addr); });
-                    state[button] = true;
                 }
             }
-            else if (state[button] == true)
+            else if ((loopState[addr] & (uint)button) == (uint)button)
             {
                 fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, false, addr); });
-                state[button] = false;
             }
         }
+        loopState[addr] = state;
     }
 
     public void ConnectionStatusHandler(BluetoothLEDevice device, Object o)
@@ -172,6 +171,9 @@ class LoopListener
             // The characteristic can get GCed, causing us to stop getting notifications, so we 
             // keep track of it
             characteristics[addr] = characteristic;
+
+            // Set up button state
+            loopState[addr] = 0;
         }
         else
         {
@@ -266,16 +268,16 @@ class LoopListener
         watcher.Received += OnAdvertisementReceived;
 
         // Wait 5 seconds to make sure the device is really out of range
-        watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(10000);
-        watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
+        watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
+        watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(50);
         watcher.Start();
 
         var thread = new Thread(() =>
         {
-            BetterScanner.StartScanner(0, 29, 29);
+            BetterScanner.StartScanner(0, 10, 11);// 29, 29);
         });
         thread.Start();
-
+        
         // JIGGLE THE CORD
         // https://stackoverflow.com/questions/38596667/bluetoothleadvertisementwatcher-doesnt-work
         while (true)
@@ -283,11 +285,11 @@ class LoopListener
             // Starting watching for advertisements
             BluetoothLEAdvertisementWatcher w = new BluetoothLEAdvertisementWatcher();
             w.ScanningMode = BluetoothLEScanningMode.Passive;
-            w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(10000);
-            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
+            w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
+            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(50);
             w.Received += (s, a) => { };
             w.Start();
-            await Task.Delay(5000);
+            await Task.Delay(2000);
             w.Stop();
         }
     }
@@ -295,13 +297,6 @@ class LoopListener
     public LoopListener(Fingers parent)
     {
         fingers = parent;
-
-        // Initialize loop state
-        foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
-        {
-            state[button] = false;
-        }
-
         Watch();
     }
 }

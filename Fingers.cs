@@ -209,15 +209,14 @@ public class Fingers
             rightRingAddr = addr;
             FingersApp.Properties.Settings.Default.RightRingID = addr;
             FingersApp.Properties.Settings.Default.Save();
-            ui.SetRightRingStatus(addrString);
         }
         else
         {
             leftRingAddr = addr;
             FingersApp.Properties.Settings.Default.LeftRingID = addr;
             FingersApp.Properties.Settings.Default.Save();
-            ui.SetLeftRingStatus(addrString);
         }
+        UpdateRingStatus();
     }
 
     public void SetLeapProfile(String name, bool updateUI)
@@ -237,6 +236,18 @@ public class Fingers
         FingersApp.Properties.Settings.Default.Save();
     }
 
+    private void UpdateRingStatus()
+    {
+        if (leftRingAddr > 0)
+            ui.SetLeftRingStatus(leftRingAddr.ToString("X").Substring(8));
+        else
+            ui.SetLeftRingStatus("Searching...");
+
+        if (rightRingAddr > 0)
+            ui.SetRightRingStatus(rightRingAddr.ToString("X").Substring(8));
+        else
+            ui.SetRightRingStatus("Searching...");
+    }
     public void SwapRings()
     {
         FingersApp.Properties.Settings.Default.LeftRingID = rightRingAddr;
@@ -245,15 +256,19 @@ public class Fingers
         rightRingAddr = FingersApp.Properties.Settings.Default.RightRingID;
         FingersApp.Properties.Settings.Default.Save();
 
-        ui.SetLeftRingStatus(leftRingAddr.ToString("X"));
-        ui.SetRightRingStatus(rightRingAddr.ToString("X"));
+        UpdateRingStatus();
     }
 
     public void HandleLoopEvent(LoopButton b, Boolean pressed, ulong addr)
     {
         Console.WriteLine("{0}: {1} {2}", addr.ToString("X"), b, pressed ? "pressed" : "released");
-        LoopButton fwdButton = (addr == leftRingAddr ? LoopButton.FWD : LoopButton.BACK);
-        LoopButton backButton = (addr == leftRingAddr ? LoopButton.BACK : LoopButton.FWD);
+        if (addr == rightRingAddr)
+        {
+            if (b == LoopButton.FWD) b = LoopButton.BACK;
+            else if (b == LoopButton.BACK) b = LoopButton.FWD;
+        }
+            
+        ui.SetButtonStatus(b, pressed, (addr == rightRingAddr));
 
         if (pressed && (b == LoopButton.UP || !cursorEnabled))
         {
@@ -272,18 +287,18 @@ public class Fingers
             Winput.MouseButton(Winput.MouseEventF.LeftUp);
             leftButtonDown = false;
         }
-        else if (b == backButton && pressed)
+        else if (b == LoopButton.BACK && pressed)
         {
             Winput.MouseButton(Winput.MouseEventF.RightDown);
             rightButtonDown = true;
             lastClicked = GetTime();
         }
-        else if (b == backButton && !pressed)
+        else if (b == LoopButton.BACK && !pressed)
         {
             Winput.MouseButton(Winput.MouseEventF.RightUp);
             rightButtonDown = false;
         }
-        else if (b == fwdButton && pressed)
+        else if (b == LoopButton.FWD && pressed)
         {
             Scroll(ScrollDetentAmount);
         }

@@ -11,6 +11,12 @@
 	<AssemblyName>FingersApp</AssemblyName>
 	<RootNamespace>FingersApp</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\indicator_off.png" />
+    <None Remove="Assets\indicator_on.png" />
+    <None Remove="Assets\swap.png" />
+  </ItemGroup>
 	
 	<ItemGroup>
 		<Reference Include="System.Runtime.InteropServices.WindowsRuntime" />
@@ -25,6 +31,12 @@
 		</Reference>
 
 		<PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
+	</ItemGroup>
+	
+	<ItemGroup>
+	  <Resource Include="Assets\indicator_off.png" />
+	  <Resource Include="Assets\indicator_on.png" />
+	  <Resource Include="Assets\swap.png" />
 	</ItemGroup>
 	
 	<ItemGroup>

@@ -6,24 +6,57 @@
         xmlns:local="clr-namespace:FingersApp"
         mc:Ignorable="d"
         Loaded="Page_Loaded"
-        Title="Fingers" Height="317" Width="280" Background="#FF0F0F0F">
+        ResizeMode="NoResize" Height="280" Width="280"
+        Title="Fingers" Background="#FF0F0F0F">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ImageSource x:Key="IndicatorOff">Assets/indicator_off.png</ImageSource>
+            <ImageSource x:Key="IndicatorOn">Assets/indicator_on.png</ImageSource>
+            <ImageSource x:Key="Swap">Assets/swap.png</ImageSource>
+            <Style TargetType="{x:Type Button}" x:Key="ImageButtonStyle">
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Button}">
+                            <ContentPresenter/>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid Margin="0,0,0,0">
-        <Grid HorizontalAlignment="Left" Height="109" Margin="10,10,0,0" VerticalAlignment="Top" Width="252">
+        <Grid HorizontalAlignment="Left" Height="61" Margin="10,10,0,0" VerticalAlignment="Top" Width="252">
             <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Leap" VerticalAlignment="Top" Width="67" Foreground="White"/>
             <TextBlock Name="LeapStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Connecting..." VerticalAlignment="Top" Width="93" Foreground="White"/>
-            <ComboBox Name="LeapProfileSelector" HorizontalAlignment="Left" Margin="122,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ComboBox_SelectionChanged">
+            <ComboBox Name="LeapProfileSelector" HorizontalAlignment="Left" Margin="122,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="LeapProfileSelectionChanged">
                 <ComboBoxItem Content="Pimax" HorizontalAlignment="Left" Width="118"/>
                 <ComboBoxItem Content="Oculus" HorizontalAlignment="Left" Width="118"/>
             </ComboBox>
         </Grid>
-        <Grid HorizontalAlignment="Left" Height="109" Margin="10,124,0,0" VerticalAlignment="Top" Width="105">
-            <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Left Ring" VerticalAlignment="Top" Width="67" Foreground="White"/>
-            <TextBlock x:Name="LeftRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Searching..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+        <Grid Width="103" Height="109" HorizontalAlignment="Left" Margin="10,124,0,0" VerticalAlignment="Top">
+            <TextBlock HorizontalAlignment="Left" Height="19" Margin="0,90,0,0" TextWrapping="Wrap" Text="LEFT" VerticalAlignment="Top" Width="105" Foreground="White" TextAlignment="Center" FontSize="9"/>
+            <TextBlock x:Name="LeftRingStatus" HorizontalAlignment="Left" Height="19" Margin="0,71,0,0" TextWrapping="Wrap" Text="Searching..." VerticalAlignment="Top" Width="105" Foreground="White" TextAlignment="Center"/>
+            <Grid HorizontalAlignment="Center" Height="64" Margin="0,0,0,0" VerticalAlignment="Top" Width="64">
+                <Image Name="LeftRingBtnCenter" ToolTip="Left click" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Source="Assets/indicator_off.png" />
+                <Image Name="LeftRingBtnFwd" ToolTip="Scroll up" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="42, 0, 0, 0" Source="Assets/indicator_off.png" />
+                <Image Name="LeftRingBtnBack" ToolTip="Right click" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="-42, 0, 0, 0" Source="Assets/indicator_off.png" />
+                <Image Name="LeftRingBtnDown" ToolTip="Scroll down" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="0, 42, 0, 0" Source="Assets/indicator_off.png" />
+                <Image Name="LeftRingBtnUp" ToolTip="Temporarily disable fingers" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="0, -42, 0, 0" Source="Assets/indicator_off.png" />
+            </Grid>
         </Grid>
-        <Grid HorizontalAlignment="Left" Height="109" Margin="150,124,0,0" VerticalAlignment="Top" Width="121">
-            <TextBlock HorizontalAlignment="Left" Height="19" Margin="16,10,0,0" TextWrapping="Wrap" Text="Right Ring" VerticalAlignment="Top" Width="67" Foreground="White"/>
-            <TextBlock x:Name="RightRingStatus" HorizontalAlignment="Left" Height="19" Margin="16,29,0,0" TextWrapping="Wrap" Text="Searching..." VerticalAlignment="Top" Width="93" Foreground="White"/>
+        <Grid Width="103" Height="109" HorizontalAlignment="Right" Margin="0,124,10,0" VerticalAlignment="Top">
+            <TextBlock HorizontalAlignment="Left" Height="19" Margin="0,90,0,0" TextWrapping="Wrap" Text="RIGHT" VerticalAlignment="Top" Width="101" Foreground="White" TextAlignment="Center" FontSize="9"/>
+            <TextBlock x:Name="RightRingStatus" HorizontalAlignment="Left" Height="19" Margin="0,71,0,0" TextWrapping="Wrap" Text="Searching..." VerticalAlignment="Top" Width="101" Foreground="White" TextAlignment="Center"/>
+            <Grid HorizontalAlignment="Center" Height="64" Margin="0,0,0,0" VerticalAlignment="Top" Width="64">
+                <Image Name="RightRingBtnCenter" ToolTip="Left click" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Source="Assets/indicator_off.png" />
+                <Image Name="RightRingBtnFwd" ToolTip="Scroll up" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="-42, 0, 0, 0" Source="Assets/indicator_off.png" />
+                <Image Name="RightRingBtnBack" ToolTip="Right click" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="42, 0, 0, 0" Source="Assets/indicator_off.png" />
+                <Image Name="RightRingBtnDown" ToolTip="Scroll down" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="0, 42, 0, 0" Source="Assets/indicator_off.png" />
+                <Image Name="RightRingBtnUp" ToolTip="Temporarily disable fingers" HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16" Margin="0, -42, 0, 0" Source="Assets/indicator_off.png" />
+            </Grid>
         </Grid>
-        <Button Content="Swap" HorizontalAlignment="Left" Margin="113,142,0,0" VerticalAlignment="Top" Width="38" Click="Swap"/>
+        <Button Style="{StaticResource ImageButtonStyle}" HorizontalAlignment="Center" Margin="0,140,0,0" VerticalAlignment="Top" Width="32" Height="32" Click="Swap">
+            <Image Source="Assets/swap.png" Height="32" VerticalAlignment="Top" HorizontalAlignment="Left" Width="32" RenderTransformOrigin="0.49,0.51" />
+        </Button>
     </Grid>
 </Window>
