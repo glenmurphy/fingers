@@ -230,9 +230,13 @@ public class Fingers
 
     public void SetLeapProfile(String name, bool updateUI)
     {
-        if (name.Equals("Oculus"))
+        if (name.Equals("Joculus"))
         {
             leap.SetProfile(5, 0, 0, 0, -18, 100);
+        }
+        else if (name.Equals("Generic"))
+        {
+            leap.SetProfile(0, 0, 0, 0, 0, 90);
         }
         else
         {

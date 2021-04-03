@@ -1,7 +1,9 @@
 // From https://github.com/Bojidarist/SendInputsDemo
+// Also consider https://stackoverflow.com/questions/5094398/how-to-programmatically-mouse-move-click-right-click-and-keypress-etc-in-winfo
+
 using System;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+
 public class Winput
 {
     [Flags]

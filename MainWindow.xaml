@@ -172,8 +172,9 @@
             <Grid HorizontalAlignment="Center" Height="96" Margin="10,10,10,0" VerticalAlignment="Top" Width="200">
                 <TextBlock HorizontalAlignment="Left" Height="19" Margin="0,24,0,0" TextAlignment="Left" TextWrapping="Wrap" Text="Mount:" VerticalAlignment="Top" Width="93" Foreground="White"/>
                 <ComboBox Background="Black" x:Name="LeapProfileSelector" HorizontalAlignment="Left" Margin="46,22,0,0" VerticalAlignment="Top" Width="150" SelectionChanged="LeapProfileSelectionChanged" Style="{DynamicResource ComboBoxFlatStyle}">
+                    <ComboBoxItem Content="Generic" HorizontalAlignment="Left" Width="118"/>
                     <ComboBoxItem Content="Pimax" HorizontalAlignment="Left" Width="118"/>
-                    <ComboBoxItem Content="Oculus" HorizontalAlignment="Left" Width="118"/>
+                    <ComboBoxItem Content="Joculus" HorizontalAlignment="Left" Width="118"/>
                 </ComboBox>
 
                 <TextBlock HorizontalAlignment="Left" Height="19" Margin="0,53,0,0" TextAlignment="Left" TextWrapping="Wrap" Text="Status:" VerticalAlignment="Top" Width="93" Foreground="White"/>
