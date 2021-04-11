@@ -54,7 +54,7 @@ public class DCS
     public static IntPtr GetDCSWindow()
     {
         IntPtr hWnd = IntPtr.Zero;
-        /*
+        
         foreach (Process pList in Process.GetProcesses())
         {
           if (pList.MainWindowTitle.Equals("")) continue;
@@ -66,7 +66,7 @@ public class DCS
             return pList.MainWindowHandle;
           }
         }
-        */
+
         return hWnd;
     }
 }

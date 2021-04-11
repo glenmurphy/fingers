@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Windows.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,21 +23,21 @@ namespace FingersApp
     public partial class MainWindow : Window
     {
         Fingers fingers;
+        Thread FingersThread;
 
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        public void StartFingers(MainWindow window)
-        {
-            fingers = new Fingers(window);
-        }
-
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            var t = new Thread(() => new Fingers(this));
-            t.Start();
+            FingersThread = new Thread(() =>
+            {
+                fingers = new Fingers(this);
+            });
+            FingersThread.IsBackground = true;
+            FingersThread.Start();
         }
 
         public void SetLeapStatus(String status)
@@ -92,7 +93,8 @@ namespace FingersApp
 
         private void Swap(object sender, RoutedEventArgs e)
         {
-            fingers.SwapRings();
+            
+            fingers.SwapRings(); // Not threadsafe
 
             ImageSource img = (ImageSource)FindResource("IndicatorOff");
             LeftRingBtnCenter.Source = img;

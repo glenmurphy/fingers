@@ -22,6 +22,7 @@ public enum LoopButton
     BACK = 16
 }
 
+/*
 // https://stackoverflow.com/questions/37307301/ble-scan-interval-windows-10/37328965
 class BetterScanner
 {
@@ -93,6 +94,7 @@ class BetterScanner
         thread.Start();
     }
 }
+*/
 
 class LoopListener
 {
@@ -271,13 +273,14 @@ class LoopListener
         watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
         watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
         watcher.Start();
-
+        
+        /*
         var thread = new Thread(() =>
         {
             BetterScanner.StartScanner(0, 10, 11);// 29, 29);
         });
         thread.Start();
-        
+        */
         // JIGGLE THE CORD
         // https://stackoverflow.com/questions/38596667/bluetoothleadvertisementwatcher-doesnt-work
         while (true)
@@ -289,7 +292,7 @@ class LoopListener
             w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
             w.Received += (s, a) => { };
             w.Start();
-            await Task.Delay(2000);
+            await Task.Delay(8000);
             w.Stop();
         }
     }

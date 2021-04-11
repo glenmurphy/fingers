@@ -11,10 +11,6 @@ public enum RingStatus
 
 public class Fingers
 {
-    // how long to pause cursor movement after mouseDown events; not useful in DCS, but helps prevent
-    // accidental scrolling/dragging in other places (e.g. text editors)
-    private static int clickPause = 0;
-
     // DCS translates mouse movement over its window into a 2D plane in the game world - you can see
     // this window when you bring up the ESC menu where it is fixed in place, while it follows the
     // head position at other times (this is why you get two different mouse behaviors). A mouse
@@ -30,7 +26,7 @@ public class Fingers
 
     // When choosing between two hands, how many degrees we should bias towards sticking with the
     // currently tracked hand.
-    private static float overlap = 2;
+    private static float overlap = 1;
 
     // Scroll tracking
     // DCS uses both individual events (for discrete things like channel selectors) as well as amounts
@@ -43,6 +39,8 @@ public class Fingers
     // The inputScreenRatio setup is translated using inputAngleScale, which is set in 
     // HandleDCSWindow; here are some reasonable default values
     Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
+
+    Vector4 DCSWindow = new Vector4(0, 0, 0, 0);
 
     // The last hand we tracked
     HandData currentHand;
@@ -85,6 +83,7 @@ public class Fingers
 
     public void HandleDCSWindow(Vector4 dim)
     {
+        DCSWindow = dim;
         Debug.WriteLine("DCS Window Size Adjustment: {0}", dim);
         inputAngleScale = new Vector2(dim.W / inputScreenWidthDegrees,
                                       dim.Z / inputScreenHeightDegrees);
@@ -178,7 +177,9 @@ public class Fingers
         }
 
         currentHand = activeHand;
-        SetCursorPos(GetScreenPosition(activeHand.pos));
+        Vector2 screenPos = GetScreenPosition(activeHand.pos);
+
+        SetCursorPos(screenPos);
     }
 
     // Called when the current hand stops being active; currently we leave left/right mouse buttons
@@ -343,15 +344,22 @@ public class Fingers
 
     private void Scroll(int amount)
     {
-        //Console.WriteLine("Scroll {0}", amount);
         Winput.ScrollMouse(amount);
     }
 
     private void SetCursorPos(Vector2 pos)
     {
-        if (!cursorEnabled || GetTime() < lastClicked + clickPause)
+        if (!cursorEnabled)
             return;
 
-        Winput.SetCursorPosition((int)(screenCenter.X + pos.X), (int)(screenCenter.Y + pos.Y));
+        int x = (int)(screenCenter.X + pos.X);
+        if (DCSWindow.W == 0)
+            { }
+        else if (x < DCSWindow.X)
+            x = (int)DCSWindow.X;
+        else if (x > DCSWindow.X + DCSWindow.W)
+            x = (int)(DCSWindow.X + DCSWindow.W);
+
+        Winput.SetCursorPosition(x, (int)(screenCenter.Y + pos.Y));
     }
 }
