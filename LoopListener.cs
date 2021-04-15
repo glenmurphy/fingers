@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks; // Dictionary
 using Windows.Storage.Streams; // DataReader
 using System.Diagnostics; // Debug
+using System.Runtime.CompilerServices; // MethodImpl
 
 // BetterScanner
 using System.Runtime.InteropServices;
@@ -22,7 +23,6 @@ public enum LoopButton
     BACK = 16
 }
 
-/*
 // https://stackoverflow.com/questions/37307301/ble-scan-interval-windows-10/37328965
 class BetterScanner
 {
@@ -94,7 +94,6 @@ class BetterScanner
         thread.Start();
     }
 }
-*/
 
 class LoopListener
 {
@@ -114,11 +113,12 @@ class LoopListener
         reader.ReadBytes(input);
 
         uint state = input[0]; // 4 for actual loop
-        uint batt = input[1];
+        uint batt = input[1] + 100u;
 
         if (!battery.ContainsKey(addr) || battery[addr] != batt)
         {
-            Debug.WriteLine("{0}: Battery: {1}%", addr.ToString("X"), batt);
+            Debug.WriteLine("{0}: Battery: {1}v", addr.ToString("X"), (float)batt / 100f);
+            fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopBattery(addr, batt); });
         }
         battery[addr] = batt;
 
@@ -149,6 +149,7 @@ class LoopListener
         }
         if (device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
         {
+            fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopDisconnected(device.BluetoothAddress); });
             loops[device.BluetoothAddress] = null;
             characteristics[device.BluetoothAddress] = null;
         }
@@ -163,12 +164,9 @@ class LoopListener
         if (status == GattCommunicationStatus.Success)
         {
             characteristic.ValueChanged += (sender, args) => CharHandler(sender, args, addr);
-            Debug.WriteLine("{0}: Paired", addr.ToString("X"));
+            Debug.WriteLine("Paired", addr.ToString("X")); // I actually don't understand how this outputs [addr]: paired
 
-            fingers.ui.Dispatcher.Invoke(() =>
-            {
-                fingers.HandleLoopConnected(addr);
-            });
+            fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopConnected(addr); });
 
             // The characteristic can get GCed, causing us to stop getting notifications, so we 
             // keep track of it
@@ -179,7 +177,7 @@ class LoopListener
         }
         else
         {
-            Debug.WriteLine("!!! {0}: PAIRING ERROR", addr.ToString("X"));
+            Debug.WriteLine("{0}: PAIRING ERROR", addr.ToString("X"));
         }
     }
 
@@ -215,6 +213,7 @@ class LoopListener
                     if (characteristic.Uuid.Equals(loopChar))
                     {
                         Subscribe(characteristic, addr);
+
                         // Prevent GC of the device and session
                         loops[addr] = loop;
                         break;
@@ -247,7 +246,7 @@ class LoopListener
     {
         foreach (var p in eventArgs.Advertisement.ServiceUuids)
         {
-            Debug.WriteLine("{0}: {1}", eventArgs.BluetoothAddress.ToString("X"), p);
+            //Debug.WriteLine("{0}: {1}", eventArgs.BluetoothAddress.ToString("X"), p);
             if (p == loopService)
             {
                 ConnectDevice(eventArgs.BluetoothAddress);
@@ -255,42 +254,24 @@ class LoopListener
         }
     }
 
+
+    [MethodImpl(MethodImplOptions.NoOptimization)]
     public async void Watch()
     {
-        BluetoothLEAdvertisementWatcher watcher = new BluetoothLEAdvertisementWatcher();
-        watcher.ScanningMode = BluetoothLEScanningMode.Passive;
+        // Speeds up connection/detection
+        BetterScanner.StartScanner(0, 15, 16);
 
-        // Only activate the watcher when we're recieving values >= -80
-        // watcher.SignalStrengthFilter.InRangeThresholdInDBm = -80;
-
-        // Stop watching if the value drops below -90 (user walked away)
-        // watcher.SignalStrengthFilter.OutOfRangeThresholdInDBm = -90;
-
-        // Register callback for when we see an advertisements
-        watcher.Received += OnAdvertisementReceived;
-
-        // Wait 5 seconds to make sure the device is really out of range
-        watcher.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
-        watcher.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
-        watcher.Start();
-        
-        /*
-        var thread = new Thread(() =>
-        {
-            BetterScanner.StartScanner(0, 10, 11);// 29, 29);
-        });
-        thread.Start();
-        */
-        // JIGGLE THE CORD
+        // JIGGLE THE CORD - we need to restart BLEAdWatcher because it's not good at finding
+        // things that didn't exist before it started running (like sleeping rings)
         // https://stackoverflow.com/questions/38596667/bluetoothleadvertisementwatcher-doesnt-work
         while (true)
         {
             // Starting watching for advertisements
             BluetoothLEAdvertisementWatcher w = new BluetoothLEAdvertisementWatcher();
             w.ScanningMode = BluetoothLEScanningMode.Passive;
-            w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(5000);
-            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(100);
-            w.Received += (s, a) => { };
+            w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
+            w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
+            w.Received += OnAdvertisementReceived;
             w.Start();
             await Task.Delay(8000);
             w.Stop();

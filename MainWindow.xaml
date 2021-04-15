@@ -185,7 +185,7 @@
             <TextBlock HorizontalAlignment="Center" Height="19" Margin="0,0,0,0" TextWrapping="Wrap" TextAlignment="Center" Text="RINGS" VerticalAlignment="Top" Width="67" Foreground="White" FontSize="14"/>
             <Grid Name="LeftRing" Width="102" Height="109" HorizontalAlignment="Left" Margin="12,36,0,0" VerticalAlignment="Top">
                 <TextBlock HorizontalAlignment="Left" Height="14" Margin="0,96,0,-1" TextWrapping="Wrap" Text="LEFT" VerticalAlignment="Top" Width="102" Foreground="White" TextAlignment="Center" FontSize="9"/>
-                <TextBlock x:Name="LeftRingStatus" HorizontalAlignment="Left" Height="19" Margin="0,76,0,0" TextWrapping="Wrap" Text="SEARCHING" VerticalAlignment="Top" Width="102" Foreground="White" TextAlignment="Center"/>
+                <TextBlock x:Name="LeftRingStatus" ToolTip="Status" HorizontalAlignment="Left" Height="19" Margin="0,76,0,0" TextWrapping="Wrap" Text="SEARCHING" VerticalAlignment="Top" Width="102" Foreground="White" TextAlignment="Center"/>
                 <Grid HorizontalAlignment="Center" Height="64" Margin="0,0,0,0" VerticalAlignment="Top" Width="64">
                     <Image x:Name="LeftRingBtnCenter" ToolTip="Left click" HorizontalAlignment="Center" VerticalAlignment="Center" Width="14" Height="14" Source="Assets/indicator_off.png" />
                     <Image x:Name="LeftRingBtnFwd" ToolTip="Scroll up" HorizontalAlignment="Center" VerticalAlignment="Center" Width="14" Height="14" Margin="42, 0, 0, 0" Source="Assets/indicator_off.png" />
@@ -196,7 +196,7 @@
             </Grid>
             <Grid Name="RightRing" Width="102" Height="109" HorizontalAlignment="Right" Margin="0,36,12,0" VerticalAlignment="Top">
                 <TextBlock HorizontalAlignment="Left" Height="14" Margin="0,96,0,-1" TextWrapping="Wrap" Text="RIGHT" VerticalAlignment="Top" Width="102" Foreground="White" TextAlignment="Center" FontSize="9"/>
-                <TextBlock x:Name="RightRingStatus" HorizontalAlignment="Left" Height="19" Margin="0,76,0,0" TextWrapping="Wrap" Text="SEARCHING" VerticalAlignment="Top" Width="102" Foreground="White" TextAlignment="Center"/>
+                <TextBlock x:Name="RightRingStatus" ToolTip="Status" HorizontalAlignment="Left" Height="19" Margin="0,76,0,0" TextWrapping="Wrap" Text="SEARCHING" VerticalAlignment="Top" Width="102" Foreground="White" TextAlignment="Center"/>
                 <Grid HorizontalAlignment="Center" Height="64" Margin="0,0,0,0" VerticalAlignment="Top" Width="64">
                     <Image x:Name="RightRingBtnCenter" ToolTip="Left click" HorizontalAlignment="Center" VerticalAlignment="Center" Width="14" Height="14" Source="Assets/indicator_off.png" />
                     <Image x:Name="RightRingBtnFwd" ToolTip="Scroll up" HorizontalAlignment="Center" VerticalAlignment="Center" Width="14" Height="14" Margin="-42, 0, 0, 0" Source="Assets/indicator_off.png" />

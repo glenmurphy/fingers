@@ -45,20 +45,27 @@ namespace FingersApp
             LeapStatus.Text = status;
         }
 
-        private void SetRingStatus(TextBlock ring, RingStatus status, ulong addr)
+        private void SetRingStatus(TextBlock ring, RingStatus status, ulong addr, uint batt)
         {
             if (status == RingStatus.CONNECTED)
+            {
                 ring.Text = addr.ToString("X").Substring(8);
+                float volts = (batt / 100f);
+                ring.ToolTip = (batt > 0) ? String.Format("{0:N2}v", volts) : "";
+            }
             else
+            {
                 ring.Text = status == RingStatus.CONNECTING ? "CONNECTING" : "SEARCHING";
+                ring.ToolTip = "";
+            }
         }
-        public void SetLeftRingStatus(RingStatus status, ulong addr)
+        public void SetLeftRingStatus(RingStatus status, ulong addr, uint batt)
         {
-            SetRingStatus(LeftRingStatus, status, addr);
+            SetRingStatus(LeftRingStatus, status, addr, batt);
         }
-        public void SetRightRingStatus(RingStatus status, ulong addr)
+        public void SetRightRingStatus(RingStatus status, ulong addr, uint batt)
         {
-            SetRingStatus(RightRingStatus, status, addr);
+            SetRingStatus(RightRingStatus, status, addr, batt);
         }
 
         public void SetButtonStatus(LoopButton b, Boolean pressed, Boolean rightHand)
