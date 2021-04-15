@@ -32,12 +32,16 @@ namespace FingersApp
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
+            Task workerTask = Task.Run(() => { fingers = new Fingers(this); });
+
+            /*
             FingersThread = new Thread(() =>
             {
                 fingers = new Fingers(this);
             });
             FingersThread.IsBackground = true;
             FingersThread.Start();
+            */
         }
 
         public void SetLeapStatus(String status)

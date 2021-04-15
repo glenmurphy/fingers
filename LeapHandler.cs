@@ -1,5 +1,6 @@
 using System;
 using System.Numerics; // Vector
+using System.Diagnostics; // Debug
 using Leap;
 
 class LeapHandler
@@ -70,7 +71,7 @@ class LeapHandler
     }
     public void OnConnect(object sender, DeviceEventArgs args)
     {
-        Console.WriteLine("Leap Connected");
+        Debug.WriteLine("Leap Connected");
         fingers.HandleLeapConnected();
 
         // Need to do this after we've connected
@@ -79,13 +80,13 @@ class LeapHandler
 
         controller.Config.Set<bool>("tracking_processing_auto_flip", true, delegate (bool success)
         {
-            if (success) Console.WriteLine("Auto flip enabled");
+            if (success) Debug.WriteLine("Auto flip enabled");
         });
     }
 
     public void OnDisconnect(object sender, DeviceEventArgs args)
     {
-        Console.WriteLine("Leap Disconnected");
+        Debug.WriteLine("Leap Disconnected");
         fingers.HandleLeapDisconnected();
     }
     public void OnFrame(object sender, FrameEventArgs args)
@@ -125,32 +126,32 @@ class LeapHandler
 
     public void OnDeviceFailure(object sender, DeviceFailureEventArgs args)
     {
-        Console.WriteLine("Leap Error:");
-        Console.WriteLine("  PNP ID:" + args.DeviceSerialNumber);
-        Console.WriteLine("  Failure message:" + args.ErrorMessage);
+        Debug.WriteLine("Leap Error:");
+        Debug.WriteLine("  PNP ID:" + args.DeviceSerialNumber);
+        Debug.WriteLine("  Failure message:" + args.ErrorMessage);
     }
 
     public void OnLogMessage(object sender, LogEventArgs args)
     {
         if (args.message.Equals("LeapC PollConnection call was  eLeapRS_Timeout"))
         {
-            Console.WriteLine("Leap Error: Could not connect");
+            Debug.WriteLine("Leap Error: Could not connect");
             return;
         }
 
         switch (args.severity)
         {
             case Leap.MessageSeverity.MESSAGE_CRITICAL:
-                Console.WriteLine("Leap Message: [Critical]: {0}", args.message);
+                Debug.WriteLine("Leap Message: [Critical]: {0}", args.message);
                 break;
             case Leap.MessageSeverity.MESSAGE_WARNING:
-                Console.WriteLine("Leap Message: [Warning]: {0}", args.message);
+                Debug.WriteLine("Leap Message: [Warning]: {0}", args.message);
                 break;
             case Leap.MessageSeverity.MESSAGE_INFORMATION:
-                Console.WriteLine("Leap Message: [Info]: {0}", args.message);
+                Debug.WriteLine("Leap Message: [Info]: {0}", args.message);
                 break;
             case Leap.MessageSeverity.MESSAGE_UNKNOWN:
-                Console.WriteLine("Leap Message: [Unknown]: {0}", args.message);
+                Debug.WriteLine("Leap Message: [Unknown]: {0}", args.message);
                 break;
         }
     }
