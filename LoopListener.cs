@@ -125,14 +125,13 @@ class LoopListener
         //Debug.WriteLine(input);
         foreach (LoopButton button in Enum.GetValues(typeof(LoopButton)))
         {
-            if ((state & (uint)button) == (uint)button)
+            uint b = (uint)button;
+
+            if ((state & b) == b && (loopState[addr] & b) == 0)
             {
-                if ((loopState[addr] & (uint)button) == 0)
-                {
-                    fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, true, addr); });
-                }
+                fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, true, addr); });
             }
-            else if ((loopState[addr] & (uint)button) == (uint)button)
+            if ((state & b) == 0 && (loopState[addr] & b) == b)
             {
                 fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopEvent(button, false, addr); });
             }

@@ -4,7 +4,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
-
+using System.Threading.Tasks;
 public class Winput
 {
     [Flags]
@@ -54,7 +54,7 @@ public class Winput
         SetCursorPos(x, y);
     }
 
-    public async static void ScrollMouse(int amount)
+    public static void ScrollMouse(int amount)
     {
         Input[] i = new Input[1];
 
@@ -69,7 +69,7 @@ public class Winput
         //mouse_event((uint)MouseEventF.Wheel, 0, 0, amount, 0);
     }
 
-    public async static void MouseButton(MouseEventF button)
+    public static void MouseButton(MouseEventF button)
     {
         Input[] i = new Input[1];
 
@@ -80,6 +80,7 @@ public class Winput
         i[0].Data.dwFlags = button;
 
         SendInput(1, i, Marshal.SizeOf(i[0]));
+
         //mouse_event((uint)button, 0, 0, 0, 0);
     }
 }

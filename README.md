@@ -6,7 +6,7 @@ This lets Digital Combat Simulator (DCS) VR use the Leap Motion and a bluetooth 
 
 * Leap Motion tracker
 * A bluetooth ring (of custom design, details soon)
-* A Windows PC with Bluetooth
+* A Windows PC with Bluetooth, ideally using [one of these adapters](https://www.espruino.com/Quick+Start+BLE#mdbt42q)
 
 ### Build instructions
 
@@ -19,7 +19,9 @@ This lets Digital Combat Simulator (DCS) VR use the Leap Motion and a bluetooth 
 
 ### Setup / Config
 - Make sure your Leap understands which way is up - look in the vizualizer and flip it in the control panel if necessary; the auto orientation doesn't always work. This gets reset every time you update Leap, and is the most likely cause of problems.
-- Configure mountAngleOffset and mountPositionOffset in fingers.cs to reflect the mounting position of your headset
+- Run FingersApp.exe
+- Select the right mount for your device
+- Press the buttons on your rings to pair them (on some BT adapters you may need to press both rings simultaneously)
 
 ### Other
 
