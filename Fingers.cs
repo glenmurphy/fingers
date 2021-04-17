@@ -384,7 +384,10 @@ public class Fingers
         if (!cursorEnabled)
             return;
 
+        // Could use ClipCursor, but direct control is good
         int x = (int)(screenCenter.X + pos.X);
+        int y = (int)(screenCenter.Y + pos.Y);
+
         if (DCSWindow.W == 0)
             { }
         else if (x < DCSWindow.X)
@@ -392,6 +395,13 @@ public class Fingers
         else if (x > DCSWindow.X + DCSWindow.W)
             x = (int)(DCSWindow.X + DCSWindow.W);
 
-        Winput.SetCursorPosition(x, (int)(screenCenter.Y + pos.Y));
+        if (DCSWindow.Z == 0)
+        { }
+        else if (y < DCSWindow.Y)
+            y = (int)DCSWindow.Y;
+        else if (y >= DCSWindow.Y + DCSWindow.Z)
+            y = (int)(DCSWindow.Y + DCSWindow.Z - 1);
+
+        Winput.SetCursorPosition(x, y);
     }
 }
