@@ -7,7 +7,7 @@
     <UseWPF>true</UseWPF>
 	  
 	<!-- you will *definitely* need to change this -->
-	<LeapSDKDir>C:\bin\LeapSDK4.0</LeapSDKDir>
+	<LeapSDKDir>C:\Program Files\Ultraleap\LeapSDK</LeapSDKDir>
 	<AssemblyName>FingersApp</AssemblyName>
 	<RootNamespace>FingersApp</RootNamespace>
 	<ApplicationIcon>favicon.ico</ApplicationIcon>

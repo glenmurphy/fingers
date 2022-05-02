@@ -60,6 +60,7 @@ public class Fingers
     bool rightButtonDown = false;
     long lastClicked = 0;
     bool cursorEnabled = true;
+    float verticalOffset = 0;
 
     LoopListener loop;
     LeapHandler leap;
@@ -106,7 +107,7 @@ public class Fingers
 
         return new Vector2(
           angle.X * inputAngleScale.X,
-          angle.Y * inputAngleScale.Y
+          (angle.Y + verticalOffset) * inputAngleScale.Y
         );
     }
 
@@ -189,6 +190,11 @@ public class Fingers
     private void DisengageHand()
     {
 
+    }
+
+    private void ToggleVerticalOffset()
+    {
+        verticalOffset = (verticalOffset == 0) ? 12 : 0;
     }
 
     private void ToggleCursorEnabled()
@@ -336,13 +342,18 @@ public class Fingers
             ui.SetButtonStatus(b, pressed, (addr == rightRingAddr));
         });
 
-        if (pressed && (b == LoopButton.UP || !cursorEnabled))
+        /*
+        if (pressed && (b == LoopButton.FWD || !cursorEnabled))
         {
             ToggleCursorEnabled();
             return;
         }
-
-        if (b == LoopButton.CENTER && pressed)
+        */
+        if (b == LoopButton.FWD && pressed)
+        {
+            ToggleVerticalOffset();
+        } 
+        else if (b == LoopButton.CENTER && pressed)
         {
             Winput.MouseButton(Winput.MouseEventF.LeftDown);
             leftButtonDown = true;
@@ -364,7 +375,7 @@ public class Fingers
             Winput.MouseButton(Winput.MouseEventF.RightUp);
             rightButtonDown = false;
         }
-        else if (b == LoopButton.FWD && pressed)
+        else if (b == LoopButton.UP && pressed)
         {
             Scroll(ScrollDetentAmount);
         }
@@ -381,7 +392,7 @@ public class Fingers
 
     private void SetCursorPos(Vector2 pos)
     {
-        if (!cursorEnabled)
+        if (!cursorEnabled) 
             return;
 
         // Could use ClipCursor, but direct control is good

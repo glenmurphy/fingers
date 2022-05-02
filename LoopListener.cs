@@ -101,6 +101,7 @@ class LoopListener
     private Dictionary<ulong, uint> loopState = new Dictionary<ulong, uint>();
     private Dictionary<ulong, uint> battery = new Dictionary<ulong, uint>();
     private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
+    private Dictionary<ulong, GattSession> sessions = new Dictionary<ulong, GattSession>();
     private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
 
     private Guid loopService = new Guid("39de08dc-624e-4d6f-8e42-e1adb7d92fe1");
@@ -118,7 +119,22 @@ class LoopListener
         if (!battery.ContainsKey(addr) || battery[addr] != batt)
         {
             Debug.WriteLine("{0}: Battery: {1}v", addr.ToString("X"), (float)batt / 100f);
-            fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopBattery(addr, batt); });
+            fingers.ui.Dispatcher.Invoke(() => {
+                // Disconnect the ring if the battery is too low
+                // The ring should have disconnected itself by now, so this might
+                // not be necessary
+                if (batt < 160) {
+                    sessions[addr].Dispose();
+                    sessions[addr] = null;
+                    characteristics[addr] = null;
+                    loops[addr].Dispose();
+                    loops[addr] = null;
+                    GC.Collect();
+                    fingers.HandleLoopDisconnected(addr);
+                } else {
+                    fingers.HandleLoopBattery(addr, batt);
+                }
+            });
         }
         battery[addr] = batt;
 
@@ -195,7 +211,7 @@ class LoopListener
         GattSession s =
             await GattSession.FromDeviceIdAsync(BluetoothDeviceId.FromId(loop.DeviceId));
         s.MaintainConnection = true;
-
+        
         //Debug.WriteLine("{0}: Getting services ...", addrString);
         GattDeviceServicesResult serviceResult =
             await loop.GetGattServicesAsync(BluetoothCacheMode.Uncached);
@@ -215,6 +231,7 @@ class LoopListener
 
                         // Prevent GC of the device and session
                         loops[addr] = loop;
+                        sessions[addr] = s;
                         break;
                     }
                 }
@@ -238,7 +255,6 @@ class LoopListener
                 }
             }
         }
-
     }
 
     public void OnAdvertisementReceived(BluetoothLEAdvertisementWatcher watcher, BluetoothLEAdvertisementReceivedEventArgs eventArgs)
@@ -271,9 +287,19 @@ class LoopListener
             w.SignalStrengthFilter.OutOfRangeTimeout = TimeSpan.FromMilliseconds(8000);
             w.SignalStrengthFilter.SamplingInterval = TimeSpan.FromMilliseconds(20);
             w.Received += OnAdvertisementReceived;
-            w.Start();
-            await Task.Delay(8000);
-            w.Stop();
+
+            // Need to try/catch in case bluetooth isn't enabled (UWP doesn't appear to have great
+            // APIs for detecting this
+            try
+            {
+                w.Start();
+                await Task.Delay(8000);
+                w.Stop();
+            }
+            catch
+            {
+                break;
+            }
         }
     }
 

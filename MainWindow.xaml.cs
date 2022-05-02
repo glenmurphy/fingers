@@ -14,6 +14,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+
 
 namespace FingersApp
 {
@@ -23,11 +26,38 @@ namespace FingersApp
     public partial class MainWindow : Window
     {
         Fingers fingers;
-        Thread FingersThread;
+        //Thread FingersThread;
+
+        [DllImport("user32.dll")]
+        internal static extern IntPtr SetForegroundWindow(IntPtr hWnd);
 
         public MainWindow()
         {
+            CheckMultipleInstanceofApp();
             InitializeComponent();
+        }
+
+        private bool CheckMultipleInstanceofApp()
+        {
+            Process[] prc = null;
+            string ModName, ProcName;
+            Process current = Process.GetCurrentProcess();
+            ModName = current.MainModule.ModuleName;
+            ProcName = System.IO.Path.GetFileNameWithoutExtension(ModName);
+            prc = Process.GetProcessesByName(ProcName);
+            if (prc.Length <= 1)
+                return false;
+
+            for (int i = 0; i < prc.Length; i++)
+            {
+                if (prc[i] == current) continue;
+                IntPtr hWnd = prc[i].MainWindowHandle;
+                if (hWnd != IntPtr.Zero)
+                    SetForegroundWindow(hWnd);
+            }
+                
+            System.Environment.Exit(0);
+            return true;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
