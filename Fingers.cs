@@ -2,6 +2,7 @@
 using System.Numerics; // Vector
 using System.Windows.Forms; // SystemInformation
 using System.Diagnostics; // Debug
+using System.Threading.Tasks;
 
 public enum RingStatus
 {
@@ -82,6 +83,12 @@ public class Fingers
 
         // Keep this process running
         Console.ReadLine();
+    }
+
+    public async Task<bool> Closing()
+    {
+        await loop.Closing();
+        return true;
     }
 
     public void HandleDCSWindow(Vector4 dim)

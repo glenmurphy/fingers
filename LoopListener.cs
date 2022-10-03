@@ -102,6 +102,7 @@ class LoopListener
     private Dictionary<ulong, uint> battery = new Dictionary<ulong, uint>();
     private Dictionary<ulong, BluetoothLEDevice> loops = new Dictionary<ulong, BluetoothLEDevice>();
     private Dictionary<ulong, GattSession> sessions = new Dictionary<ulong, GattSession>();
+    private Dictionary<ulong, GattDeviceService> services = new Dictionary<ulong, GattDeviceService>();
     private Dictionary<ulong, GattCharacteristic> characteristics = new Dictionary<ulong, GattCharacteristic>();
 
     private Guid loopService = new Guid("39de08dc-624e-4d6f-8e42-e1adb7d92fe1");
@@ -124,12 +125,7 @@ class LoopListener
                 // The ring should have disconnected itself by now, so this might
                 // not be necessary
                 if (batt < 160) {
-                    sessions[addr].Dispose();
-                    sessions[addr] = null;
-                    characteristics[addr] = null;
-                    loops[addr].Dispose();
-                    loops[addr] = null;
-                    GC.Collect();
+                    Task.Run<bool>(async () => await DisconnectDevice(addr));
                     fingers.HandleLoopDisconnected(addr);
                 } else {
                     fingers.HandleLoopBattery(addr, batt);
@@ -165,8 +161,8 @@ class LoopListener
         if (device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
         {
             fingers.ui.Dispatcher.Invoke(() => { fingers.HandleLoopDisconnected(device.BluetoothAddress); });
-            loops[device.BluetoothAddress] = null;
-            characteristics[device.BluetoothAddress] = null;
+
+            Task.Run<bool>(async () => await DisconnectDevice(device.BluetoothAddress));
         }
     }
 
@@ -210,7 +206,7 @@ class LoopListener
         //Debug.WriteLine("{0}: Maintaining connection ...", addrString);
         GattSession s =
             await GattSession.FromDeviceIdAsync(BluetoothDeviceId.FromId(loop.DeviceId));
-        s.MaintainConnection = true;
+        //s.MaintainConnection = true;
         
         //Debug.WriteLine("{0}: Getting services ...", addrString);
         GattDeviceServicesResult serviceResult =
@@ -232,6 +228,7 @@ class LoopListener
                         // Prevent GC of the device and session
                         loops[addr] = loop;
                         sessions[addr] = s;
+                        services[addr] = service;
                         break;
                     }
                 }
@@ -253,6 +250,8 @@ class LoopListener
                     Debug.WriteLine("Loop battery: {0}%", input[0]);
                     break;
                 }
+
+                service.Dispose();
             }
         }
     }
@@ -307,5 +306,78 @@ class LoopListener
     {
         fingers = parent;
         Watch();
+    }
+
+    public async Task<bool> DisconnectDevice(ulong addr)
+    {
+        if (characteristics.ContainsKey(addr))
+        {
+            var result = await characteristics[addr].WriteClientCharacteristicConfigurationDescriptorAsync(GattClientCharacteristicConfigurationDescriptorValue.None);
+            if (result != GattCommunicationStatus.Success)
+            {
+                Debug.WriteLine("Unsubscribe failure", addr.ToString("X"));
+            } 
+            characteristics[addr].ValueChanged -= (sender, args) => CharHandler(sender, args, addr);
+            characteristics[addr] = null;
+        }
+
+        if (sessions.ContainsKey(addr))
+        {
+            sessions[addr].MaintainConnection = false;
+            sessions[addr].Dispose();
+            sessions[addr] = null;
+        }
+
+        if (services.ContainsKey(addr))
+        {
+            services[addr].Dispose();
+            services[addr] = null;
+        }
+
+        if (loops.ContainsKey(addr))
+        {
+            loops[addr].ConnectionStatusChanged -= ConnectionStatusHandler;
+            loops[addr].Dispose();
+            loops[addr] = null;
+        }
+
+        GC.Collect();
+        Debug.WriteLine("DisconnectDevice", addr.ToString("X"));
+        return true;
+    }
+
+
+    public async Task<bool> Closing()
+    {
+        // we need to find a way to send a disconnected event
+        // to the loops so they can go to sleep; this doesn't
+        // actually work, and it's unclear if there is a way 
+        // to make it work
+        // 
+        // See https://stackoverflow.com/questions/47702584/bluetooth-le-device-cannot-disconnect-in-win-10-iot-uwp-application
+        // https://github.com/jasongin/noble-uwp/issues/20
+        // https://stackoverflow.com/questions/39599252/windows-ble-uwp-disconnect
+
+        List<ulong> addrs = new List<ulong>();
+        foreach (var item in loops)
+        {
+            addrs.Add(item.Key);
+        }
+
+        foreach(ulong addr in addrs)
+        {
+            await DisconnectDevice(addr);
+        }
+
+        characteristics.Clear();
+        sessions.Clear();
+        services.Clear();
+        loops.Clear();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        await Task.Delay(500);
+        return true;
     }
 }

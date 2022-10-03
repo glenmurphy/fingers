@@ -7,6 +7,7 @@
         xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Class="FingersApp.MainWindow"
         mc:Ignorable="d"
         Loaded="Page_Loaded"
+        Closing="Window_Closing"
         ResizeMode="CanMinimize" Height="330" Width="280"
         Title="Fingers" Background="#FF0F0F0F">
     <Window.Resources>

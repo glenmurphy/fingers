@@ -26,6 +26,7 @@ namespace FingersApp
     public partial class MainWindow : Window
     {
         Fingers fingers;
+        private bool closing = false;
         //Thread FingersThread;
 
         [DllImport("user32.dll")]
@@ -35,6 +36,19 @@ namespace FingersApp
         {
             CheckMultipleInstanceofApp();
             InitializeComponent();
+        }
+
+        private async void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (closing)
+            {
+                return;
+            }
+
+            e.Cancel = true;
+            await fingers.Closing();
+            closing = true;
+            Close();
         }
 
         private bool CheckMultipleInstanceofApp()
