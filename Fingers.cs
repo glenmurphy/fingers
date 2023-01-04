@@ -71,7 +71,7 @@ public class Fingers
         ui = mainWindow;
 
         // Configuration variables
-        screenCenter = new Vector2(SystemInformation.VirtualScreen.Width / 2, SystemInformation.VirtualScreen.Height / 2);
+        screenCenter = new Vector2(SystemInformation.PrimaryMonitorSize.Width / 2, SystemInformation.PrimaryMonitorSize.Height / 2);
 
         resetPoint = new Vector2(screenCenter.X, screenCenter.Y * (float)1.25);
 
