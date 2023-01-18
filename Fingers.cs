@@ -40,7 +40,7 @@ public class Fingers
     // Internal variables
     // The inputScreenRatio setup is translated using inputAngleScale, which is set in 
     // HandleDCSWindow; here are some reasonable default values
-    Vector2 inputAngleScale = new Vector2(14.4f, 21.6f);
+    Vector2 inputAngleScale = new Vector2(21.6f, 21.6f);
 
     Vector4 DCSWindow = new Vector4(0, 0, 0, 0);
 
