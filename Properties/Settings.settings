@@ -11,5 +11,8 @@
     <Setting Name="LeapProfile" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="Sensitivity" Type="System.Single" Scope="User">
+      <Value Profile="(Default)">135</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

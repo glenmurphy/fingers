@@ -23,7 +23,7 @@ public class Fingers
     //
     // This virtual screen appears to be 100 degrees wide with 16:9 aspect ratio
     private static float inputScreenRatio = 16f / 10f;
-    private static float inputScreenWidthDegrees = 100f;
+    private static float inputScreenWidthDegrees = 135f;
     private static float inputScreenHeightDegrees = inputScreenWidthDegrees / inputScreenRatio;
 
     // When choosing between two hands, how many degrees we should bias towards sticking with the
@@ -40,7 +40,7 @@ public class Fingers
     // Internal variables
     // The inputScreenRatio setup is translated using inputAngleScale, which is set in 
     // HandleDCSWindow; here are some reasonable default values
-    Vector2 inputAngleScale = new Vector2(21.6f, 21.6f);
+    Vector2 inputAngleScale = new Vector2(16.6f, 16.6f);
 
     Vector4 DCSWindow = new Vector4(0, 0, 0, 0);
 
@@ -81,6 +81,9 @@ public class Fingers
         leap = new LeapHandler(this);
         SetLeapProfile(FingersApp.Properties.Settings.Default.LeapProfile, true);
 
+        SetSensitivity(FingersApp.Properties.Settings.Default.Sensitivity);
+        ui.Dispatcher.Invoke(() => { ui.SetSensitivityDisplay(FingersApp.Properties.Settings.Default.Sensitivity); });
+
         // Keep this process running
         Console.ReadLine();
     }
@@ -95,8 +98,28 @@ public class Fingers
     {
         DCSWindow = dim;
         Debug.WriteLine("DCS Window Size Adjustment: {0}", dim);
-        inputAngleScale = new Vector2(dim.W / inputScreenWidthDegrees,
-                                      dim.Z / inputScreenHeightDegrees);
+        UpdateAngleScale();
+    }
+
+    public void UpdateAngleScale()
+    {
+        inputAngleScale = new Vector2(DCSWindow.W / inputScreenWidthDegrees,
+                                      DCSWindow.Z / inputScreenHeightDegrees);
+        Debug.WriteLine("New inputAngleScale: {0}", inputAngleScale);
+    }
+
+    public void SetSensitivity(float sens)
+    {
+        Debug.WriteLine("New sens: {0}", sens);
+        inputScreenWidthDegrees = sens;
+        inputScreenHeightDegrees = inputScreenWidthDegrees / inputScreenRatio;
+        UpdateAngleScale();
+
+        if (sens != FingersApp.Properties.Settings.Default.Sensitivity)
+        {
+            FingersApp.Properties.Settings.Default.Sensitivity = sens;
+            FingersApp.Properties.Settings.Default.Save();
+        }
     }
 
     // Get the angle of the position (in HandData position) relative to the eye in degrees

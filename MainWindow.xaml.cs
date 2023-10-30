@@ -16,7 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-
+using Windows.UI.Xaml.Controls.Primitives;
 
 namespace FingersApp
 {
@@ -46,7 +46,8 @@ namespace FingersApp
             }
 
             e.Cancel = true;
-            await fingers.Closing();
+            if (fingers != null)
+                await fingers.Closing();
             closing = true;
             Close();
         }
@@ -116,6 +117,12 @@ namespace FingersApp
             SetRingStatus(RightRingStatus, status, addr, batt);
         }
 
+        public void SetSensitivityDisplay(float sens)
+        {
+            Debug.WriteLine("Updating slider: {0}", sens);
+            SensitivitySlider.Value = (double)sens;
+        }
+
         public void SetButtonStatus(LoopButton b, Boolean pressed, Boolean rightHand)
         {
             ImageSource img = (ImageSource)(pressed ? FindResource("IndicatorOn") : FindResource("IndicatorOff"));
@@ -174,6 +181,13 @@ namespace FingersApp
             // loads the previous data, so we don't need/want to call back to it
             if (text != null && fingers != null)
                 fingers.SetLeapProfile(text, false);
+        }
+
+        private void SensitivityValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            if ((float)e.NewValue == (float)e.OldValue || fingers == null) return;
+
+            fingers.SetSensitivity((float)e.NewValue);
         }
     }
 }
